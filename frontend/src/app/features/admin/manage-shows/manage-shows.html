@@ -1,0 +1,443 @@
+<div class="mx-auto max-w-7xl px-4 pt-2 pb-2">
+  <!-- Feature 1 — Dashboard header -->
+  <header id="ms-header" class="mb-6 flex items-end justify-between gap-4">
+    <div>
+      <h1 class="flex items-center gap-2 text-xl font-bold sm:text-xl">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
+          <svg lucideCalendarClock class="h-4 w-4"></svg>
+        </span>
+        Manage Shows
+      </h1>
+      <p id="ms-subtitle" class="mt-1 text-sm text-gray-600">
+        Schedule screenings and see what's coming up.
+      </p>
+    </div>
+    <div id="ms-counter" class="card flex items-center gap-3 px-3 py-2">
+      <span id="ms-counter-value" class="text-2xl font-bold text-tomato-500">{{ upcoming().length }}</span>
+      <span class="text-xs leading-tight text-gray-600">Shows<br />scheduled</span>
+    </div>
+  </header>
+
+  <!-- Feature 2 — Top carousel (upcoming shows, soonest first) -->
+  @if (carouselShows().length) {
+    <section id="ms-carousel" class="card relative mb-8 overflow-hidden">
+      <div id="ms-carousel-track" class="carousel-track">
+        @for (entry of carouselShows(); track entry.show.id; let i = $index) {
+          <div
+            [id]="'ms-carousel-slide-' + entry.show.id"
+            class="carousel-slide"
+            [class.is-active]="i === safeIndex()"
+          >
+            <img [src]="entry.movie.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
+            <div class="carousel-overlay"></div>
+            <div class="carousel-inner">
+              <img [src]="entry.movie.posterUrl" [alt]="entry.movie.title" class="carousel-poster" />
+              <div class="carousel-details">
+                <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+                  Scheduled · {{ entry.show.showTime | date: "MMM d, h:mm a" }}
+                </span>
+                <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+                  {{ entry.movie.title }}
+                </h3>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  @for (g of toChips(entry.movie.genre); track g) {
+                    <span class="chip chip-on-dark">{{ g }}</span>
+                  }
+                </div>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
+                  <svg lucideClock class="h-4 w-4"></svg> {{ entry.movie.durationMins }} min
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (carouselShows().length > 1) {
+        <div id="ms-carousel-dots" class="carousel-dots">
+          @for (entry of carouselShows(); track entry.show.id; let i = $index) {
+            <button
+              [id]="'ms-carousel-dot-' + i"
+              type="button"
+              class="carousel-dot"
+              [class.is-active]="i === safeIndex()"
+              (click)="goToSlide(i)"
+              [attr.aria-label]="'Go to slide ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Feature 3 — Schedule form -->
+  <section class="card p-6">
+    <h2 id="ms-form-heading" class="text-lg font-bold">
+      {{ editingId() ? "Edit show" : "Schedule shows" }}
+    </h2>
+    <p class="mb-5 mt-1 text-sm text-gray-500">
+      @if (editingId()) {
+        Update the movie, date, price, seats, language or time slot.
+      } @else {
+        Pick a movie, then set the date, seats, price, language and time slot.
+      }
+    </p>
+
+    <form id="ms-form" (ngSubmit)="submit()" class="space-y-5" novalidate>
+      <!-- Movie selector — horizontally scrollable poster cards -->
+      <div>
+        <div class="mb-1.5 flex items-center justify-between">
+          <label class="block text-sm font-medium text-gray-700">Movie</label>
+          @if (selectedMovieId() != null) {
+            <button
+              id="ms-movie-clear"
+              type="button"
+              class="inline-flex items-center gap-1 text-xs font-medium text-tomato-600 hover:text-tomato-500"
+              (click)="clearMovie()"
+            >
+              <svg lucideX class="h-3.5 w-3.5"></svg> Clear
+            </button>
+          }
+        </div>
+
+        @if (movies().length) {
+          <div id="ms-movie-row" class="movie-row">
+            @for (movie of movies(); track movie.id) {
+              <button
+                [id]="'ms-movie-card-' + movie.id"
+                type="button"
+                class="movie-card"
+                [class.is-selected]="isMovieSelected(movie)"
+                (click)="selectMovie(movie)"
+              >
+                <!-- Tick-mark badge shown on the currently selected movie. -->
+                @if (isMovieSelected(movie)) {
+                  <span [id]="'ms-movie-check-' + movie.id" class="movie-card-check">
+                    <svg lucideCheck class="h-3.5 w-3.5"></svg>
+                  </span>
+                }
+                <img [src]="movie.posterUrl" [alt]="movie.title" class="movie-card-poster" />
+                <span class="movie-card-title">{{ movie.title }}</span>
+                <span class="movie-card-genre">{{ toChips(movie.genre)[0] }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <p id="ms-movie-empty" class="rounded-lg bg-ink-800 px-4 py-6 text-center text-sm text-gray-500">
+            No movies in the catalog yet. Add a movie first to schedule a show.
+          </p>
+        }
+        @if (submitted() && selectedMovieId() == null) {
+          <p class="mt-1 text-xs text-tomato-600">Select a movie to schedule.</p>
+        }
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <!-- Date -->
+        <div>
+          <label for="ms-input-date" class="mb-1.5 block text-sm font-medium text-gray-700">Date</label>
+          <input
+            id="ms-input-date"
+            name="date"
+            type="date"
+            class="input"
+            [min]="minDate()"
+            [(ngModel)]="form.date"
+            required
+          />
+          @if (submitted() && !form.date) {
+            <p class="mt-1 text-xs text-tomato-600">Date is required.</p>
+          }
+        </div>
+
+        <!-- Time slot -->
+        <div>
+          <label for="ms-input-time" class="mb-1.5 block text-sm font-medium text-gray-700">
+            Time slot <span class="font-normal text-gray-400">(hour & minute)</span>
+          </label>
+          <input
+            id="ms-input-time"
+            name="time"
+            type="time"
+            class="input"
+            [(ngModel)]="form.time"
+            required
+          />
+          @if (submitted() && !form.time) {
+            <p class="mt-1 text-xs text-tomato-600">Time slot is required.</p>
+          }
+        </div>
+
+        <!-- Ticket price -->
+        <div>
+          <label for="ms-input-price" class="mb-1.5 block text-sm font-medium text-gray-700">
+            Ticket price
+          </label>
+          <div class="relative">
+            <span class="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-gray-400">₹</span>
+            <input
+              id="ms-input-price"
+              name="ticketPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              class="input pl-9"
+              [(ngModel)]="form.ticketPrice"
+              required
+              placeholder="e.g. 250"
+            />
+          </div>
+          @if (submitted() && (form.ticketPrice == null || form.ticketPrice < 0)) {
+            <p class="mt-1 text-xs text-tomato-600">Enter a valid ticket price.</p>
+          }
+        </div>
+
+        <!-- Total seats -->
+        <div>
+          <label for="ms-input-seats" class="mb-1.5 block text-sm font-medium text-gray-700">
+            <span class="inline-flex items-center gap-1.5">
+              <svg lucideArmchair class="h-4 w-4 text-gray-400"></svg> Total seats
+            </span>
+          </label>
+          <input
+            id="ms-input-seats"
+            name="totalSeats"
+            type="number"
+            min="1"
+            [max]="maxSeats"
+            class="input"
+            [(ngModel)]="form.totalSeats"
+            required
+            [placeholder]="'e.g. 120 (max ' + maxSeats + ')'"
+          />
+          @if (submitted() && (form.totalSeats == null || form.totalSeats < 1)) {
+            <p class="mt-1 text-xs text-tomato-600">Total seats must be at least 1.</p>
+          }
+          @else if (form.totalSeats != null && form.totalSeats > maxSeats) {
+            <p class="mt-1 text-xs text-tomato-600">A show can hold at most {{ maxSeats }} seats.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Show language — single-select badges from the selected movie's languages -->
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700">
+          <span class="inline-flex items-center gap-1.5">
+            <svg lucideLanguages class="h-4 w-4 text-gray-400"></svg> Show language
+          </span>
+        </label>
+        @if (selectedMovie()) {
+          <div id="ms-lang-chips" class="flex flex-wrap gap-2">
+            @for (lang of availableLanguages(); track lang) {
+              <button
+                [id]="'ms-lang-chip-' + lang.toLowerCase()"
+                type="button"
+                class="lang-chip"
+                [class.is-selected]="isLanguageSelected(lang)"
+                (click)="selectLanguage(lang)"
+              >
+                {{ lang }}
+              </button>
+            }
+          </div>
+          @if (submitted() && !selectedLanguage()) {
+            <p class="mt-1 text-xs text-tomato-600">Pick one language for this show.</p>
+          }
+        } @else {
+          <p class="text-xs text-gray-400">Select a movie above to choose its language.</p>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 pt-1">
+        <button
+          id="ms-submit"
+          type="submit"
+          class="btn-primary"
+          [disabled]="!canSubmit() || submitting()"
+        >
+          @if (submitting()) {
+            <svg lucideLoader class="h-4 w-4 animate-spin"></svg> Saving…
+          } @else if (editingId()) {
+            <svg lucidePencil class="h-4 w-4"></svg> Save changes
+          } @else {
+            <svg lucidePlus class="h-4 w-4"></svg> Schedule show
+          }
+        </button>
+        <button id="ms-reset" type="button" class="btn-ghost" (click)="cancelEdit()">
+          {{ editingId() ? "Cancel" : "Reset" }}
+        </button>
+      </div>
+
+      @if (error()) {
+        <p id="ms-form-error" class="text-sm text-tomato-600">{{ error() }}</p>
+      }
+    </form>
+  </section>
+
+  <!-- Feature 4 — Shows ledger with status filter -->
+  <section class="card mt-8 overflow-hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 px-5 py-4">
+      <div class="flex items-center gap-3">
+        <h2 class="font-bold">
+          
+          {{
+              filter() === 'upcoming'
+                ? 'Upcoming Shows'
+                : filter() === 'closed'
+                ? 'Closed Shows'
+                : 'All Shows'
+            }}
+
+        </h2>
+        <span id="ms-table-count" class="rounded-full bg-ink-800 px-2.5 py-0.5 text-sm font-semibold text-gray-600">
+          {{ filteredShows().length }} total
+        </span>
+      </div>
+      <!-- Status filter -->
+      <div id="ms-filter" class="flex items-center gap-1 rounded-lg bg-ink-800 p-1">
+        <button
+          id="ms-filter-upcoming"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="filter() === 'upcoming'"
+          (click)="setFilter('upcoming')"
+        >
+          Upcoming
+        </button>
+        <button
+          id="ms-filter-closed"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="filter() === 'closed'"
+          (click)="setFilter('closed')"
+        >
+          Closed
+        </button>
+        <button
+          id="ms-filter-all"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="filter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          All
+        </button>
+      </div>
+    </div>
+
+    @if (filteredShows().length) {
+      <div class="overflow-x-auto">
+        <table id="ms-table" class="w-full text-left text-sm">
+          <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-5 py-3">ID</th>
+              <th class="px-5 py-3">Movie</th>
+              <th class="px-5 py-3">Showtime</th>
+              <th class="px-5 py-3">Price</th>
+              <th class="px-5 py-3">Seats</th>
+              <th class="px-5 py-3">Status</th>
+              <th class="px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (show of filteredShows(); track show.id) {
+              <tr [id]="'ms-row-' + show.id" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+                <td class="px-5 py-3 text-gray-500">#{{ show.id }}</td>
+                <td class="px-5 py-3">
+                  @if (movieFor(show); as movie) {
+                    <div class="flex items-center gap-3">
+                      <img [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
+                      <div>
+                        <p class="font-medium text-gray-900">{{ movie.title }}</p>
+                        <div class="mt-0.5 flex flex-wrap gap-1">
+                          @for (g of toChips(movie.genre); track g) {
+                            <span class="chip">{{ g }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <span class="text-gray-400">Movie #{{ show.movieId }}</span>
+                  }
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap text-gray-600">
+                  {{ show.showTime | date: "MMM d, y" }}
+                  <span class="block text-xs text-gray-400">{{ show.showTime | date: "h:mm a" }}</span>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap text-gray-600">
+                  {{ show.ticketPrice | currency: "INR" }}
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap text-gray-600">
+                  {{ show.availableSeats }} / {{ show.totalSeats }}
+                </td>
+                <td class="px-5 py-3">
+                  @if (isUpcoming(show)) {
+                    <span class="status-badge status-open">Open</span>
+                  } @else {
+                    <span class="status-badge status-closed">Closed</span>
+                  }
+                </td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center justify-end gap-2">
+                    <!-- Edit only while the show is still upcoming. -->
+                    @if (isUpcoming(show)) {
+                      <button
+                        [id]="'ms-edit-' + show.id"
+                        type="button"
+                        class="btn-ghost px-3 py-1.5 text-sm"
+                        (click)="editShow(show)"
+                      >
+                        <svg lucidePencil class="h-3.5 w-3.5"></svg> Edit
+                      </button>
+                    }
+                    <button
+                      [id]="'ms-delete-' + show.id"
+                      type="button"
+                      class="btn-ghost px-3 py-1.5 text-sm text-tomato-600 hover:bg-tomato-500/10"
+                      (click)="askDelete(show)"
+                    >
+                      <svg lucideTrash2 class="h-3.5 w-3.5"></svg> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div id="ms-table-empty" class="px-5 py-12 text-center text-gray-500">
+        <svg lucideFilm class="mx-auto mb-2 h-8 w-8 text-gray-300"></svg>
+        No shows in this view. Schedule one using the form above.
+      </div>
+    }
+  </section>
+
+  <!-- Delete confirmation modal -->
+  @if (deleteTarget(); as target) {
+    <div
+      id="ms-delete-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      (click)="cancelDelete()"
+    >
+      <div class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-bold">
+          Delete this show of "{{ movieFor(target)?.title ?? 'Movie #' + target.movieId }}"?
+        </h3>
+        <p class="mt-2 text-sm text-gray-600">
+          The show will be archived (hidden from listings). Past bookings and ticket history are
+          preserved.
+        </p>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button id="ms-delete-cancel" type="button" class="btn-ghost" (click)="cancelDelete()">
+            Cancel
+          </button>
+          <button id="ms-delete-confirm" type="button" class="btn-primary" (click)="confirmDelete()">
+            <svg lucideTrash2 class="h-4 w-4"></svg> Yes, delete show
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

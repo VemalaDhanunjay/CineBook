@@ -33,6 +33,15 @@ export interface Show {
   availableSeats: number;
 }
 
+/**
+ * Create/update payload for a show. The backend assigns `id`, derives `theaterId`
+ * from the admin's JWT, and computes `availableSeats`, so none of those are sent.
+ */
+export type ShowPayload = Pick<
+  Show,
+  "movieId" | "showTime" | "language" | "ticketPrice" | "totalSeats"
+>;
+
 export type BookingStatus = "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED";
 
 export type SeatStatus = "BOOKED" | "CANCELLED";
