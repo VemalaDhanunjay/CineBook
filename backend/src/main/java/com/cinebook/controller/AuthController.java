@@ -2,6 +2,7 @@ package com.cinebook.controller;
 
 import com.cinebook.dto.AuthResponse;
 import com.cinebook.dto.LoginRequest;
+//import com.cinebook.dto.RegisterAdminReques;
 import com.cinebook.dto.RegisterAdminRequest;
 import com.cinebook.dto.RegisterRequest;
 import com.cinebook.service.AuthService;
