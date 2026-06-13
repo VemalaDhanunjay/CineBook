@@ -70,3 +70,39 @@ export interface BookingSeat {
   status: SeatStatus;
   cancelledAt: string | null;
 }
+
+/**
+ * Pre-joined booking row served by `/api/admin/bookings` for the admin ledger.
+ * The server stitches movie + show + theater + user context on so the table can
+ * render without secondary lookups.
+ */
+export interface AdminBooking {
+  id: number;
+  userId: number;
+  username: string;
+  movieId: number | null;
+  movieTitle: string;
+  moviePosterUrl: string | null;
+  showId: number;
+  showTime: string | null;
+  theaterName: string | null;
+  theaterLocation: string | null;
+  seatsBooked: number;
+  seatNumbers: string;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  refundAmount: number;
+  status: BookingStatus;
+  bookingDate: string;
+  cancelledAt: string | null;
+}
+
+/** One row of the "Most Booked" leaderboard — drives the admin bookings carousel. */
+export interface MostBookedMovie {
+  movieId: number;
+  title: string;
+  posterUrl: string;
+  totalSeatsBooked: number;
+  totalBookings: number;
+}

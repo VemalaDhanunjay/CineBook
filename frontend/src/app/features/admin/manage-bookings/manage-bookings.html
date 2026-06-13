@@ -1,0 +1,388 @@
+<div id="ab-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
+  <!-- Feature 1 — Dashboard header + page-level movie filter -->
+  <header id="ab-header" class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 id="ab-title" class="flex items-center gap-2 text-xl font-bold sm:text-xl">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
+          <svg lucideReceipt class="h-4 w-4"></svg>
+        </span>
+        All Bookings
+      </h1>
+      <p id="ab-subtitle" class="mt-1 text-sm text-gray-600">
+        Every reservation made across the platform.
+      </p>
+    </div>
+
+    <!-- Rich movie filter — affects KPIs, ledger rows and tab counts simultaneously. -->
+    <div id="ab-filter-wrap" class="relative">
+      <button
+        id="ab-filter-trigger"
+        type="button"
+        class="filter-trigger"
+        [class.is-open]="dropdownOpen()"
+        (click)="toggleDropdown()"
+        [attr.aria-expanded]="dropdownOpen()"
+        aria-haspopup="listbox"
+      >
+        @if (selectedMovie(); as picked) {
+          @if (picked.posterUrl) {
+            <img
+              [src]="picked.posterUrl"
+              [alt]="picked.title"
+              class="filter-trigger-poster"
+            />
+          } @else {
+            <span class="filter-trigger-icon">
+              <svg lucideFilm class="h-4 w-4"></svg>
+            </span>
+          }
+          <span class="filter-trigger-text">
+            <span class="filter-trigger-title">{{ picked.title }}</span>
+            <span class="filter-trigger-meta">
+              {{ picked.bookingCount }} booking{{ picked.bookingCount === 1 ? "" : "s" }}
+            </span>
+          </span>
+          <button
+            id="ab-filter-clear"
+            type="button"
+            class="filter-trigger-clear"
+            (click)="pickMovie('ALL', $event)"
+            aria-label="Clear movie filter"
+          >
+            <svg lucideX class="h-3.5 w-3.5"></svg>
+          </button>
+        } @else {
+          <span class="filter-trigger-icon">
+            <svg lucideFilm class="h-4 w-4"></svg>
+          </span>
+          <span class="filter-trigger-text">
+            <span class="filter-trigger-title">All movies</span>
+            <span class="filter-trigger-meta">Showing every reservation</span>
+          </span>
+        }
+        <svg
+          lucideChevronDown
+          class="filter-trigger-chevron h-4 w-4"
+          [class.is-flipped]="dropdownOpen()"
+        ></svg>
+      </button>
+
+      @if (dropdownOpen()) {
+        <div id="ab-filter-menu" class="filter-menu card" role="listbox">
+          <button
+            id="ab-filter-row-all"
+            type="button"
+            class="filter-menu-row"
+            [class.is-active]="movieFilter() === 'ALL'"
+            (click)="pickMovie('ALL', $event)"
+            role="option"
+            [attr.aria-selected]="movieFilter() === 'ALL'"
+          >
+            <span class="filter-trigger-icon">
+              <svg lucideFilm class="h-4 w-4"></svg>
+            </span>
+            <span class="filter-menu-text">
+              <span class="filter-menu-title">All movies</span>
+              <span class="filter-menu-meta">Aggregate across the theater</span>
+            </span>
+            @if (movieFilter() === "ALL") {
+              <svg lucideCheck class="h-4 w-4 text-tomato-500"></svg>
+            }
+          </button>
+
+          @for (option of movieOptions(); track option.id) {
+            <button
+              [id]="'ab-filter-row-' + option.id"
+              type="button"
+              class="filter-menu-row"
+              [class.is-active]="movieFilter() === option.id"
+              (click)="pickMovie(option.id, $event)"
+              role="option"
+              [attr.aria-selected]="movieFilter() === option.id"
+            >
+              @if (option.posterUrl) {
+                <img
+                  [src]="option.posterUrl"
+                  [alt]="option.title"
+                  class="filter-menu-poster"
+                />
+              } @else {
+                <span class="filter-trigger-icon">
+                  <svg lucideFilm class="h-4 w-4"></svg>
+                </span>
+              }
+              <span class="filter-menu-text">
+                <span class="filter-menu-title">{{ option.title }}</span>
+                <span class="filter-menu-meta">
+                  {{ option.bookingCount }} booking{{ option.bookingCount === 1 ? "" : "s" }}
+                </span>
+              </span>
+              @if (movieFilter() === option.id) {
+                <svg lucideCheck class="h-4 w-4 text-tomato-500"></svg>
+              }
+            </button>
+          }
+
+          @if (movieOptions().length === 0) {
+            <p class="px-4 py-6 text-center text-xs text-gray-500">
+              No bookings yet — movies will appear here once reservations come in.
+            </p>
+          }
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Feature 2 — KPI grid (4 cards) -->
+  <section id="ab-kpi-grid" class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div id="ab-kpi-bookings" class="card flex items-center gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-tomato-500/10 text-tomato-600">
+        <svg lucideTicket class="h-4 w-4"></svg>
+      </span>
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Total Bookings
+        </p>
+        <p id="ab-kpi-bookings-value" class="text-2xl font-bold text-gray-900">
+          {{ totalBookings() }}
+        </p>
+      </div>
+    </div>
+
+    <div id="ab-kpi-footsteps" class="card flex items-center gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-tomato-500/10 text-tomato-600">
+        <svg lucideUsers class="h-4 w-4"></svg>
+      </span>
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Total Foot Steps
+        </p>
+        <p id="ab-kpi-footsteps-value" class="text-2xl font-bold text-gray-900">
+          {{ totalFootSteps() }}
+        </p>
+      </div>
+    </div>
+
+    <div id="ab-kpi-revenue" class="card flex items-center gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600">
+        <svg lucideWallet class="h-4 w-4"></svg>
+      </span>
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Revenue
+        </p>
+        <p id="ab-kpi-revenue-value" class="text-2xl font-bold text-emerald-600">
+          {{ revenue() | currency: "INR" : "symbol-narrow" : "1.0-0" }}
+        </p>
+      </div>
+    </div>
+
+    <div id="ab-kpi-refunded" class="card flex items-center gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-amber-500/10 text-amber-600">
+        <svg lucideRotateCcw class="h-4 w-4"></svg>
+      </span>
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Refunded
+        </p>
+        <p id="ab-kpi-refunded-value" class="text-2xl font-bold text-gray-900">
+          {{ refundedAmount() | currency: "INR" : "symbol-narrow" : "1.0-0" }}
+        </p>
+        <p id="ab-kpi-refunded-track" class="text-[0.7rem] text-gray-500">
+          {{ cancellationCount() }} cancellation{{ cancellationCount() === 1 ? "" : "s" }}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 3 — "Most Booked" carousel (reuses the existing carousel pattern) -->
+  @if (mostBooked().length) {
+    <section id="ab-carousel" class="card relative mb-8 overflow-hidden">
+      <div id="ab-carousel-track" class="carousel-track">
+        @for (movie of mostBooked(); track movie.movieId; let i = $index) {
+          <div
+            [id]="'ab-carousel-slide-' + movie.movieId"
+            class="carousel-slide"
+            [class.is-active]="i === safeIndex()"
+          >
+            <img [src]="movie.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
+            <div class="carousel-overlay"></div>
+            <div class="carousel-inner">
+              <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-poster" />
+              <div class="carousel-details">
+                <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+                  Most Booked · {{ movie.totalSeatsBooked }} seats
+                </span>
+                <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+                  {{ movie.title }}
+                </h3>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
+                  <svg lucideTicket class="h-4 w-4"></svg>
+                  {{ movie.totalBookings }} booking{{ movie.totalBookings === 1 ? "" : "s" }}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (mostBooked().length > 1) {
+        <div id="ab-carousel-dots" class="carousel-dots">
+          @for (movie of mostBooked(); track movie.movieId; let i = $index) {
+            <button
+              [id]="'ab-carousel-dot-' + i"
+              type="button"
+              class="carousel-dot"
+              [class.is-active]="i === safeIndex()"
+              (click)="goToSlide(i)"
+              [attr.aria-label]="'Go to slide ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Feature 4 — Status-tabbed history ledger (movie filter lives in its header) -->
+  <section id="ab-ledger" class="card overflow-hidden">
+    <header
+      id="ab-ledger-header"
+      class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 px-5 py-4"
+    >
+      <div>
+        <h2 class="flex items-center gap-2 text-base font-bold">
+          <svg lucideFilm class="h-4 w-4 text-tomato-500"></svg>
+          History Ledger
+        </h2>
+        <p class="text-xs text-gray-500">
+          {{ tabbedBookings().length }} record{{ tabbedBookings().length === 1 ? "" : "s" }}
+        </p>
+      </div>
+      <div id="ab-ledger-tabs" class="flex items-center gap-1 rounded-lg bg-ink-800 p-1">
+        <button
+          id="ab-tab-all"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="statusTab() === 'ALL'"
+          (click)="setStatusTab('ALL')"
+        >
+          All
+          <span class="ml-1 text-xs font-semibold opacity-70">{{ allCount() }}</span>
+        </button>
+        <button
+          id="ab-tab-confirmed"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="statusTab() === 'CONFIRMED'"
+          (click)="setStatusTab('CONFIRMED')"
+        >
+          Confirmed
+          <span class="ml-1 text-xs font-semibold opacity-70">{{ confirmedCount() }}</span>
+        </button>
+        <button
+          id="ab-tab-cancelled"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="statusTab() === 'CANCELLED'"
+          (click)="setStatusTab('CANCELLED')"
+        >
+          Cancelled
+          <span class="ml-1 text-xs font-semibold opacity-70">{{ cancelledCount() }}</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="overflow-x-auto">
+      <table id="ab-table" class="w-full text-left text-sm">
+        <thead
+          class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500"
+        >
+          <tr>
+            <th id="ab-col-ref" class="px-5 py-3">REF</th>
+            <th id="ab-col-user" class="px-5 py-3">USER</th>
+            <th id="ab-col-movie" class="px-5 py-3">MOVIE / SHOW</th>
+            <th id="ab-col-seats" class="px-5 py-3">SEATS</th>
+            <th id="ab-col-seat-numbers" class="px-5 py-3">SEAT NUMBERS</th>
+            <th id="ab-col-total" class="px-5 py-3">TOTAL</th>
+            <th id="ab-col-status" class="px-5 py-3">STATUS</th>
+            <th id="ab-col-booked-at" class="px-5 py-3">BOOKED AT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of tabbedBookings(); track b.id) {
+            <tr
+              [id]="'ab-row-' + b.id"
+              class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60"
+            >
+              <td class="px-5 py-3 font-mono text-gray-600">BK-{{ b.id }}</td>
+
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-2.5">
+                  <span class="avatar-initials">{{ initialsOf(b.username) }}</span>
+                  <span class="font-medium text-gray-900">{{ b.username }}</span>
+                </div>
+              </td>
+
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  @if (b.moviePosterUrl) {
+                    <img
+                      [src]="b.moviePosterUrl"
+                      [alt]="b.movieTitle"
+                      class="h-14 w-10 rounded object-cover"
+                    />
+                  }
+                  <div>
+                    <p class="font-medium text-gray-900">{{ b.movieTitle }}</p>
+                    <p class="mt-0.5 text-xs text-gray-500">
+                      @if (b.showTime) {
+                        {{ b.showTime | date: "MMM d, y · h:mm a" }}
+                      } @else {
+                        Show #{{ b.showId }}
+                      }
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {{ b.theaterName ?? "—" }}@if (b.theaterLocation) {
+                        , {{ b.theaterLocation }}
+                      }
+                    </p>
+                  </div>
+                </div>
+              </td>
+
+              <td class="px-5 py-3 font-semibold text-gray-900">{{ b.seatsBooked }}</td>
+
+              <td class="px-5 py-3 font-mono text-xs text-gray-700">
+                {{ b.seatNumbers || "—" }}
+              </td>
+
+              <td class="px-5 py-3">
+                <p class="font-semibold text-gray-900">
+                  {{ b.totalAmount | currency: "INR" : "symbol-narrow" : "1.2-2" }}
+                </p>
+                @if (hasRefund(b)) {
+                  <p class="text-xs font-medium text-tomato-600">
+                    Refunded
+                    {{ b.refundAmount | currency: "INR" : "symbol-narrow" : "1.2-2" }}
+                  </p>
+                }
+              </td>
+
+              <td class="px-5 py-3">
+                <span [class]="statusClass(b.status)">{{ statusLabel(b.status) }}</span>
+              </td>
+
+              <td class="px-5 py-3 font-mono text-xs text-gray-600">{{ b.bookingDate }}</td>
+            </tr>
+          } @empty {
+            <tr id="ab-empty-row">
+              <td colspan="8" class="px-5 py-10 text-center text-sm text-gray-500">
+                No bookings match the current filter.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

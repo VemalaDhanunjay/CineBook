@@ -29,6 +29,14 @@ export const routes: Routes = [
       import("./features/admin/manage-shows/manage-shows").then((m) => m.ManageShowsComponent)
   },
   {
+    path: "manage-bookings",
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import("./features/admin/manage-bookings/manage-bookings").then(
+        (m) => m.ManageBookingsComponent
+      )
+  },
+  {
     path: "",
     canActivate: [authGuard],
     loadComponent: () => import("./features/user/home/home").then((m) => m.HomeComponent)

@@ -1,0 +1,127 @@
+:host {
+  display: block;
+}
+
+/* Carousel — verbatim from manage-shows.css so the "Most Booked" ribbon looks
+   identical to the existing carousels (cross-fade + Ken-Burns zoom). */
+.carousel-track {
+  @apply relative h-[14.4rem] sm:h-[16rem];
+}
+.carousel-slide {
+  @apply absolute inset-0 overflow-hidden opacity-0 scale-105 transition-[opacity,transform] duration-700 ease-in-out pointer-events-none;
+}
+.carousel-slide.is-active {
+  @apply opacity-100 scale-100 pointer-events-auto;
+}
+.carousel-bg {
+  @apply absolute inset-0 h-full w-full scale-110 object-cover blur-2xl;
+}
+.carousel-overlay {
+  @apply absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40;
+}
+.carousel-inner {
+  @apply relative z-10 flex h-full items-center gap-5 p-5 sm:gap-7 sm:p-7;
+}
+.carousel-poster {
+  @apply aspect-[2/3] h-[82%] flex-shrink-0 rounded-lg object-cover shadow-2xl ring-1 ring-white/15;
+}
+.carousel-details {
+  @apply min-w-0 flex-1;
+}
+.carousel-dots {
+  @apply absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2;
+}
+.carousel-dot {
+  @apply h-2 w-2 rounded-full bg-white/50 transition-all hover:bg-white/80;
+}
+.carousel-dot.is-active {
+  @apply w-5 bg-tomato-500;
+}
+
+/* Ledger status tab pills — same shape as manage-shows.css */
+.filter-btn {
+  @apply rounded-md px-3 py-1 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900;
+}
+.filter-btn.is-active {
+  @apply bg-tomato-500 text-white shadow-sm hover:text-white;
+}
+
+/* ─── Rich movie filter (page-level dropdown) ─────────────────────────────────
+   A custom button-driven combobox: the native <select> can't host poster
+   thumbnails per option, so we hand-roll the trigger + menu using existing
+   tokens (.card, tomato palette) so it still looks native to the app. */
+.filter-trigger {
+  @apply inline-flex h-14 min-w-[16rem] max-w-[20rem] items-center gap-3 rounded-xl border border-ink-700 bg-ink-900 px-3 pr-2 text-left shadow-sm transition-colors hover:border-ink-600 hover:bg-ink-800 focus:border-tomato-500 focus:outline-none focus:ring-2 focus:ring-tomato-500/30;
+}
+.filter-trigger.is-open {
+  @apply border-tomato-500 ring-2 ring-tomato-500/30;
+}
+.filter-trigger-poster {
+  @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
+}
+.filter-trigger-icon {
+  @apply grid h-10 w-10 flex-shrink-0 place-items-center rounded-md bg-tomato-500/10 text-tomato-600;
+}
+.filter-trigger-text {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+.filter-trigger-title {
+  @apply truncate text-sm font-semibold text-gray-900;
+}
+.filter-trigger-meta {
+  @apply truncate text-[0.7rem] font-medium text-gray-500;
+}
+.filter-trigger-clear {
+  @apply grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-gray-500 transition-colors hover:bg-ink-800 hover:text-tomato-600;
+}
+.filter-trigger-chevron {
+  @apply flex-shrink-0 text-gray-500 transition-transform duration-200;
+}
+.filter-trigger-chevron.is-flipped {
+  @apply rotate-180 text-tomato-500;
+}
+
+.filter-menu {
+  @apply absolute right-0 top-full z-30 mt-2 flex max-h-[22rem] w-80 flex-col gap-0.5 overflow-y-auto p-1.5 shadow-xl ring-1 ring-black/5;
+}
+
+.filter-menu-row {
+  @apply flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-ink-800;
+}
+.filter-menu-row.is-active {
+  @apply bg-tomato-500/10;
+}
+.filter-menu-poster {
+  @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
+}
+.filter-menu-text {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+.filter-menu-title {
+  @apply truncate text-sm font-semibold text-gray-900;
+}
+.filter-menu-row.is-active .filter-menu-title {
+  @apply text-tomato-600;
+}
+.filter-menu-meta {
+  @apply truncate text-[0.7rem] font-medium text-gray-500;
+}
+
+/* Status badges — reuses the base shape and extends with three booking-specific tones. */
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+.status-confirmed {
+  @apply bg-green-500/10 text-green-600;
+}
+.status-partial {
+  @apply bg-amber-500/10 text-amber-600;
+}
+.status-cancelled {
+  @apply bg-tomato-500/10 text-tomato-600;
+}
+
+/* User column avatar — small initials chip in front of the username. */
+.avatar-initials {
+  @apply grid h-8 w-8 flex-shrink-0 place-items-center rounded-full bg-tomato-500/10 text-xs font-semibold uppercase text-tomato-600;
+}
