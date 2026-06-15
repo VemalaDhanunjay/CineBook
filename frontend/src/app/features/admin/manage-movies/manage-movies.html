@@ -17,56 +17,24 @@
   </header>
 
   <!-- Feature 2 — Top carousel (last 3 added movies) -->
-  @if (latestThree().length) {
-    <section id="mm-carousel" class="card relative mb-8 overflow-hidden">
-      <div id="mm-carousel-track" class="carousel-track">
-        @for (movie of latestThree(); track movie.id; let i = $index) {
-          <div
-            [id]="'mm-carousel-slide-' + movie.id"
-            class="carousel-slide"
-            [class.is-active]="i === safeIndex()"
-          >
-            <img [src]="movie.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
-            <div class="carousel-overlay"></div>
-            <div class="carousel-inner">
-              <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-poster" />
-              <div class="carousel-details">
-                <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
-                  Now in catalog
-                </span>
-                <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
-                  {{ movie.title }}
-                </h3>
-                <div class="mt-3 flex flex-wrap gap-1.5">
-                  @for (g of toChips(movie.genre); track g) {
-                    <span class="chip chip-on-dark">{{ g }}</span>
-                  }
-                </div>
-                <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
-                  <svg lucideClock class="h-4 w-4"></svg> {{ movie.durationMins }} min
-                </p>
-              </div>
-            </div>
-          </div>
+  <app-carousel [items]="latestThree()">
+    <ng-template let-movie>
+      <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+        Now in catalog
+      </span>
+      <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+        {{ movie.title }}
+      </h3>
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        @for (g of toChips(movie.genre); track g) {
+          <span class="chip chip-on-dark">{{ g }}</span>
         }
       </div>
-
-      @if (latestThree().length > 1) {
-        <div id="mm-carousel-dots" class="carousel-dots">
-          @for (movie of latestThree(); track movie.id; let i = $index) {
-            <button
-              [id]="'mm-carousel-dot-' + i"
-              type="button"
-              class="carousel-dot"
-              [class.is-active]="i === safeIndex()"
-              (click)="goToSlide(i)"
-              [attr.aria-label]="'Go to slide ' + (i + 1)"
-            ></button>
-          }
-        </div>
-      }
-    </section>
-  }
+      <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
+        <svg lucideClock class="h-4 w-4"></svg> {{ movie.durationMins }} min
+      </p>
+    </ng-template>
+  </app-carousel>
 
   <!-- Feature 3 — Two-column form grid + live preview -->
   <div class="grid gap-6 lg:grid-cols-2">

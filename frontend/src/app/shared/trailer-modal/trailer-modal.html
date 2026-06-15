@@ -1,0 +1,36 @@
+@if (open()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+    (click)="onBackdropClick()"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="trailer-modal w-full max-w-3xl overflow-hidden rounded-2xl bg-ink-900 shadow-2xl" (click)="stop($event)">
+      <header class="flex items-center justify-between border-b border-ink-700 px-4 py-3">
+        <h3 class="text-sm font-bold text-gray-900">{{ title() }}</h3>
+        <button
+          type="button"
+          class="grid h-8 w-8 place-items-center rounded-full text-gray-500 transition-colors hover:bg-ink-800 hover:text-gray-900"
+          (click)="close.emit()"
+          aria-label="Close trailer"
+        >
+          <svg lucideX class="h-4 w-4"></svg>
+        </button>
+      </header>
+      <div class="trailer-frame">
+        @if (embedUrl(); as src) {
+          <iframe
+            [src]="src"
+            title="Movie trailer"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        } @else {
+          <div class="flex h-full w-full items-center justify-center bg-ink-800 text-sm font-medium text-gray-500">
+            No trailer available for this movie yet.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

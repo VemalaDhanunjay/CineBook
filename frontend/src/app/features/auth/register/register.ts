@@ -89,7 +89,7 @@ export class RegisterComponent {
         : this.auth.register({ username: this.username, password: this.password });
 
     request$.subscribe({
-      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/"]),
+      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/movies"]),
       error: (err) => {
         this.error.set(err?.error?.message ?? "Registration failed");
         this.loading.set(false);

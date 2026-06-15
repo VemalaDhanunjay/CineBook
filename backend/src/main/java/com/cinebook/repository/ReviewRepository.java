@@ -11,7 +11,14 @@ import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByMovieId(Long movieId);
+
+    /** Reviews on a single movie, newest first — drives the public reviews list. */
+    List<Review> findByMovieIdOrderByCreatedAtDesc(Long movieId);
+
     Optional<Review> findByBookingId(Long bookingId);
+
+    /** One review per booking — guard for the "you already rated this" path. */
+    boolean existsByBookingId(Long bookingId);
 
     // Average rating + review count per movie, restricted to the given movie set
     // (the theater's movies). Powers the "Top Rated" analytics chart.

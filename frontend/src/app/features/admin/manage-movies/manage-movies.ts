@@ -1,5 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from "@angular/core";
+import { Component, OnInit, ViewChild, inject, signal } from "@angular/core";
 import { FormsModule, NgForm } from "@angular/forms";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@lucide/angular";
 import { Movie, MoviePayload } from "../../../core/models/catalog.model";
 import { MovieService } from "../../../core/services/movie.service";
+import { CarouselComponent } from "../../../shared/carousel/carousel";
 
 /** Shape of the add/edit form. Empty values use null so number inputs start blank. */
 interface MovieForm {
@@ -43,15 +44,13 @@ const EMPTY_FORM: MovieForm = {
 /** Preset language chips that append to the comma-separated `languages` field. */
 const PRESET_LANGUAGES = ["Telugu", "Hindi", "English", "Tamil", "Kannada", "Malayalam"];
 
-/** Auto-advance interval for the top carousel, in milliseconds. */
-const SLIDE_INTERVAL_MS = 4000;
-
 @Component({
   selector: "app-manage-movies",
   standalone: true,
   imports: [
     FormsModule,
     CurrencyPipe,
+    CarouselComponent,
     LucideChevronLeft,
     LucideChevronRight,
     LucideCirclePlay,
@@ -68,7 +67,7 @@ const SLIDE_INTERVAL_MS = 4000;
   templateUrl: "./manage-movies.html",
   styleUrl: "./manage-movies.css"
 })
-export class ManageMoviesComponent implements OnInit, OnDestroy {
+export class ManageMoviesComponent implements OnInit {
   private readonly movieService = inject(MovieService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -91,19 +90,10 @@ export class ManageMoviesComponent implements OnInit, OnDestroy {
   /** Movie pending deletion confirmation; drives the archival modal. */
   readonly deleteTarget = signal<Movie | null>(null);
 
-  /** Active carousel slide index. */
-  readonly slideIndex = signal(0);
-  private timer?: ReturnType<typeof setInterval>;
-
   @ViewChild("movieForm") private movieForm?: NgForm;
 
   ngOnInit(): void {
     this.movieService.load().subscribe();
-    this.startAutoSlide();
-  }
-
-  ngOnDestroy(): void {
-    this.stopAutoSlide();
   }
 
   // ── Derived preview values ────────────────────────────────────────────────
@@ -154,58 +144,6 @@ export class ManageMoviesComponent implements OnInit, OnDestroy {
       ? chips.filter((lang) => lang.toLowerCase() !== language.toLowerCase())
       : [...chips, language];
     this.form.languages = next.join(", ");
-  }
-
-  // ── Carousel ──────────────────────────────────────────────────────────────
-
-  /** Index clamped to the current number of slides (the list shrinks/grows). */
-  safeIndex(): number {
-    const total = this.latestThree().length;
-    return total === 0 ? 0 : this.slideIndex() % total;
-  }
-
-  next(): void {
-    const total = this.latestThree().length;
-    if (total === 0) {
-      return;
-    }
-    this.slideIndex.set((this.safeIndex() + 1) % total);
-    this.restartAutoSlide();
-  }
-
-  prev(): void {
-    const total = this.latestThree().length;
-    if (total === 0) {
-      return;
-    }
-    this.slideIndex.set((this.safeIndex() - 1 + total) % total);
-    this.restartAutoSlide();
-  }
-
-  goToSlide(index: number): void {
-    this.slideIndex.set(index);
-    this.restartAutoSlide();
-  }
-
-  private startAutoSlide(): void {
-    this.timer = setInterval(() => {
-      const total = this.latestThree().length;
-      if (total > 1) {
-        this.slideIndex.update((i) => (i + 1) % total);
-      }
-    }, SLIDE_INTERVAL_MS);
-  }
-
-  private stopAutoSlide(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-  }
-
-  private restartAutoSlide(): void {
-    this.stopAutoSlide();
-    this.startAutoSlide();
   }
 
   // ── Form actions ──────────────────────────────────────────────────────────

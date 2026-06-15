@@ -35,4 +35,106 @@ body {
   .card {
     @apply rounded-xl border border-ink-700 bg-ink-900 shadow-sm;
   }
+
+  /* Rich combobox shell — promoted from manage-bookings so the user navbar's
+     location picker can reuse the exact same trigger + menu chrome as the
+     admin's "All Bookings" filter (single source of truth for both). */
+  .filter-trigger {
+    @apply inline-flex h-14 min-w-[16rem] max-w-[20rem] items-center gap-3 rounded-xl border border-ink-700 bg-ink-900 px-3 pr-2 text-left shadow-sm transition-colors hover:border-ink-600 hover:bg-ink-800 focus:border-tomato-500 focus:outline-none focus:ring-2 focus:ring-tomato-500/30;
+  }
+  .filter-trigger.is-open {
+    @apply border-tomato-500 ring-2 ring-tomato-500/30;
+  }
+  .filter-trigger-poster {
+    @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
+  }
+  .filter-trigger-icon {
+    @apply grid h-10 w-10 flex-shrink-0 place-items-center rounded-md bg-tomato-500/10 text-tomato-600;
+  }
+  .filter-trigger-text {
+    @apply flex min-w-0 flex-1 flex-col;
+  }
+  .filter-trigger-title {
+    @apply truncate text-sm font-semibold text-gray-900;
+  }
+  .filter-trigger-meta {
+    @apply truncate text-[0.7rem] font-medium text-gray-500;
+  }
+  .filter-trigger-clear {
+    @apply grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-gray-500 transition-colors hover:bg-ink-800 hover:text-tomato-600;
+  }
+  .filter-trigger-chevron {
+    @apply flex-shrink-0 text-gray-500 transition-transform duration-200;
+  }
+  .filter-trigger-chevron.is-flipped {
+    @apply rotate-180 text-tomato-500;
+  }
+
+  .filter-menu {
+    @apply absolute right-0 top-full z-30 mt-2 flex max-h-[22rem] w-80 flex-col gap-0.5 overflow-y-auto p-1.5 shadow-xl ring-1 ring-black/5;
+  }
+  .filter-menu-row {
+    @apply flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-ink-800;
+  }
+  .filter-menu-row.is-active {
+    @apply bg-tomato-500/10;
+  }
+  .filter-menu-poster {
+    @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
+  }
+  .filter-menu-text {
+    @apply flex min-w-0 flex-1 flex-col;
+  }
+  .filter-menu-title {
+    @apply truncate text-sm font-semibold text-gray-900;
+  }
+  .filter-menu-row.is-active .filter-menu-title {
+    @apply text-tomato-600;
+  }
+  .filter-menu-meta {
+    @apply truncate text-[0.7rem] font-medium text-gray-500;
+  }
+
+  /* Pill-shaped filter button used by genre/language rows on the movies page.
+     Light theme: light surface, dark text. Active state inverts to tomato. */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-600 bg-ink-900 px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:border-tomato-500 hover:text-tomato-600;
+  }
+  .pill.is-active {
+    @apply border-transparent bg-tomato-500 text-white shadow-sm hover:bg-tomato-600 hover:text-white;
+  }
+
+  /* Small chips used inside dark surfaces (carousels, hero) and light cards.
+     Matches the per-component .chip used in manage-movies / manage-shows so a
+     migration to a single global definition is invisible. */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-tomato-500/10 px-2.5 py-0.5 text-xs font-semibold text-tomato-600;
+  }
+  .chip-on-dark {
+    @apply inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur;
+  }
+
+  /* Status-tab pill — used by the admin "All Bookings" ledger and the user's
+     My Bookings list to filter rows by ALL / CONFIRMED / CANCELLED. */
+  .filter-btn {
+    @apply rounded-md px-3 py-1 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900;
+  }
+  .filter-btn.is-active {
+    @apply bg-tomato-500 text-white shadow-sm hover:text-white;
+  }
+
+  /* Status badge — shared between admin's manage-bookings ledger and the user's
+     My Bookings list. Three tone variants follow the booking status enum. */
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .status-confirmed {
+    @apply bg-green-500/10 text-green-700;
+  }
+  .status-partial {
+    @apply bg-amber-500/10 text-amber-700;
+  }
+  .status-cancelled {
+    @apply bg-tomato-500/10 text-tomato-600;
+  }
 }

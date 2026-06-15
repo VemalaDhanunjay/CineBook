@@ -57,7 +57,7 @@ export class LoginComponent {
     this.loading.set(true);
     this.error.set(null);
     this.auth.login({ username: this.username, password: this.password }).subscribe({
-      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/"]),
+      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/movies"]),
       error: (err) => {
         this.error.set(err?.error?.message ?? "Login failed");
         this.loading.set(false);

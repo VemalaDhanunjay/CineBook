@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+/* Curved "SCREEN" pill at the top of the seat grid */
+.screen {
+  @apply mx-auto w-3/4 max-w-sm rounded-b-3xl border-t-2 border-tomato-500/60 bg-tomato-500/10 py-1.5 text-center text-[0.65rem] font-bold uppercase tracking-[0.4em] text-tomato-600;
+}
+
+.seat-grid {
+  @apply flex flex-col gap-2;
+}
+.seat-row {
+  @apply flex items-center justify-center gap-3;
+}
+.seat-row-label {
+  @apply w-5 text-xs font-bold uppercase text-gray-600;
+}
+
+.seat {
+  @apply grid h-8 w-8 place-items-center rounded-md border text-[0.65rem] font-semibold transition-colors;
+}
+.seat-available {
+  @apply border-ink-600 bg-white text-gray-700 hover:border-tomato-500 hover:bg-tomato-500/10 hover:text-tomato-600;
+}
+.seat-picked {
+  @apply border-tomato-500 bg-tomato-500 text-white shadow-sm hover:bg-tomato-600;
+}
+.seat-booked {
+  @apply cursor-not-allowed border-ink-700 bg-ink-800 text-gray-400 line-through;
+}
+.seat-legend {
+  @apply inline-flex items-center gap-1.5;
+}
+.seat-legend .seat {
+  @apply h-4 w-4 text-transparent;
+}
+
+/* "I'm interested" toggle in the booking header. Off state = neutral outline,
+   on state = tomato-filled heart with shadow. */
+.interest-btn {
+  @apply inline-flex items-center gap-2 rounded-xl border border-ink-600 bg-ink-900 px-3 py-2 text-gray-700 shadow-sm transition-colors hover:border-tomato-500 hover:text-tomato-600 disabled:cursor-not-allowed disabled:opacity-60;
+}
+.interest-btn.is-interested {
+  @apply border-tomato-500 bg-tomato-500/10 text-tomato-600;
+}
+

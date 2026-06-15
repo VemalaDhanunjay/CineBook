@@ -1,0 +1,205 @@
+<div id="booking-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
+  <button
+    type="button"
+    class="btn-ghost mb-4 py-1.5 text-sm"
+    (click)="selectedShow() ? resetShow() : goBack()"
+  >
+    <svg lucideArrowLeft class="h-4 w-4"></svg>
+    {{ selectedShow() ? "Back to showtimes" : "Back" }}
+  </button>
+
+  @if (movie(); as m) {
+    <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        @if (m.posterUrl) {
+          <img [src]="m.posterUrl" [alt]="m.title" class="h-28 w-20 rounded-lg object-cover shadow-sm" />
+        }
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">{{ m.title }}</h1>
+          <p class="mt-1 text-sm font-medium text-gray-600">
+            {{ m.genre }} <span class="opacity-60">&bull;</span> {{ m.durationMins }} min
+            <span class="opacity-60">&bull;</span> {{ m.languages }}
+          </p>
+          @if (m.trailerUrl) {
+            <button
+              id="booking-trailer-btn"
+              type="button"
+              class="btn-ghost mt-3 py-1.5 text-xs"
+              (click)="openTrailer()"
+            >
+              <svg lucidePlay class="h-3.5 w-3.5"></svg>
+              Watch Trailer
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (interest(); as status) {
+        <button
+          id="booking-interest-btn"
+          type="button"
+          class="interest-btn"
+          [class.is-interested]="status.interested"
+          [disabled]="interestSubmitting()"
+          (click)="toggleInterest()"
+          [attr.aria-pressed]="status.interested"
+        >
+          <svg lucideHeart class="h-4 w-4" [class.fill-current]="status.interested"></svg>
+          <span class="flex flex-col items-start leading-tight">
+            <span class="text-xs font-semibold">
+              {{ status.interested ? "Interested" : "I'm interested" }}
+            </span>
+            <span class="text-[0.65rem] font-medium opacity-80">
+              {{ status.count }} {{ status.count === 1 ? "person" : "people" }} waiting
+            </span>
+          </span>
+        </button>
+      }
+    </header>
+  }
+
+  @if (error(); as err) {
+    <div class="card mb-4 border-tomato-500/40 bg-tomato-500/5 px-4 py-3 text-sm font-medium text-tomato-600">
+      {{ err }}
+    </div>
+  }
+
+  @if (!selectedShow()) {
+    <!-- Step 1: pick a show -->
+    <h2 class="mb-3 text-lg font-bold text-gray-900">Choose a showtime</h2>
+    @if (shows().length) {
+      <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        @for (show of shows(); track show.id) {
+          <button
+            [id]="'show-' + show.id"
+            type="button"
+            class="card flex flex-col items-start gap-2 p-4 text-left transition-colors hover:border-tomato-500 hover:shadow"
+            (click)="pickShow(show)"
+          >
+            <div class="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <svg lucideCalendar class="h-4 w-4 text-tomato-500"></svg>
+              {{ show.showTime | date: "EEE, MMM d • h:mm a" }}
+            </div>
+            <div class="flex items-center gap-2 text-xs font-medium text-gray-600">
+              <svg lucideMapPin class="h-3.5 w-3.5"></svg>
+              {{ show.theaterName }} <span class="opacity-60">&bull;</span> {{ show.theaterLocation }}
+            </div>
+            <div class="flex w-full items-end justify-between pt-1">
+              <span class="chip">{{ show.language }}</span>
+              <div class="text-right">
+                <p class="text-xs text-gray-500">Tickets from</p>
+                <p class="text-base font-bold text-tomato-600">
+                  {{ show.ticketPrice | currency: "INR" }}
+                </p>
+              </div>
+            </div>
+            <p class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500">
+              {{ show.availableSeats }} of {{ show.totalSeats }} seats left
+            </p>
+          </button>
+        }
+      </section>
+    } @else {
+      <div class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+        <svg lucideClock class="h-10 w-10 text-gray-400"></svg>
+        <p class="text-sm font-medium text-gray-700">
+          No upcoming shows for this movie yet.
+        </p>
+        @if (interest(); as status) {
+          <p class="text-xs text-gray-500">
+            Tap <span class="font-semibold text-tomato-600">I'm interested</span> above so theaters know to schedule it.
+            @if (status.count > 0) {
+              <span class="ml-1">({{ status.count }} already waiting.)</span>
+            }
+          </p>
+        }
+      </div>
+    }
+  } @else {
+    <!-- Step 2: seat picker -->
+    @if (selectedShow(); as show) {
+      <header class="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">Pick your seats</h2>
+          <p class="mt-1 text-xs font-medium text-gray-600">
+            {{ show.theaterName }} <span class="opacity-60">&bull;</span>
+            {{ show.showTime | date: "EEE, MMM d • h:mm a" }}
+            <span class="opacity-60">&bull;</span> {{ show.language }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-xs font-medium text-gray-700">
+          <span class="seat-legend"><span class="seat seat-available"></span> Available</span>
+          <span class="seat-legend"><span class="seat seat-picked"></span> Selected</span>
+          <span class="seat-legend"><span class="seat seat-booked"></span> Booked</span>
+        </div>
+      </header>
+
+      <section class="card mb-4 px-4 py-6">
+        <div class="screen mb-6">SCREEN</div>
+        <div class="seat-grid">
+          @for (row of rows(); track row.label) {
+            <div class="seat-row">
+              <span class="seat-row-label">{{ row.label }}</span>
+              <div class="flex flex-wrap items-center justify-center gap-1.5">
+                @for (seat of row.seats; track seat.label) {
+                  <button
+                    [id]="'seat-' + seat.label"
+                    type="button"
+                    class="seat"
+                    [class.seat-available]="!seat.booked && !seat.picked"
+                    [class.seat-picked]="seat.picked"
+                    [class.seat-booked]="seat.booked"
+                    [disabled]="seat.booked"
+                    [attr.aria-label]="'Seat ' + seat.label + (seat.booked ? ' (booked)' : '')"
+                    (click)="toggleSeat(seat.label, seat.booked)"
+                  >
+                    {{ seat.label.slice(1) }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Step 3: confirm -->
+      <section class="card flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <div class="text-sm">
+          <p class="font-medium text-gray-700">
+            <span class="font-bold text-gray-900">{{ selectedSeats().length }}</span>
+            seat{{ selectedSeats().length === 1 ? "" : "s" }} selected
+            @if (selectedSeats().length) {
+              <span class="ml-2 text-xs text-gray-500">({{ selectedSeats().join(", ") }})</span>
+            }
+          </p>
+          <p class="mt-1 text-xs text-gray-500">
+            Subtotal {{ subtotal() | currency: "INR" }} + GST {{ tax() | currency: "INR" }}
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-right text-lg font-bold text-tomato-600">
+            {{ total() | currency: "INR" }}
+          </p>
+          <button
+            id="booking-confirm"
+            type="button"
+            class="btn-primary"
+            (click)="confirm()"
+            [disabled]="submitting() || selectedSeats().length === 0"
+          >
+            <svg lucideTicket class="h-4 w-4"></svg>
+            {{ submitting() ? "Booking..." : "Confirm Booking" }}
+            <svg lucideArrowRight class="h-4 w-4"></svg>
+          </button>
+        </div>
+      </section>
+    }
+  }
+
+  <app-trailer-modal
+    [open]="trailerOpen()"
+    [trailerUrl]="movie()?.trailerUrl ?? null"
+    [title]="movie()?.title ?? 'Trailer'"
+    (close)="closeTrailer()"
+  />
+</div>

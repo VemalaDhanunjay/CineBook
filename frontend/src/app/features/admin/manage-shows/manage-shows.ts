@@ -1,11 +1,10 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { Component, OnDestroy, OnInit, computed, inject, signal } from "@angular/core";
+import { Component, OnInit, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   LucideArmchair,
   LucideCalendarClock,
   LucideCheck,
-  LucideClock,
   LucideFilm,
   LucideLanguages,
   LucideLoader,
@@ -17,6 +16,7 @@ import {
 import { Movie, Show, ShowPayload } from "../../../core/models/catalog.model";
 import { MovieService } from "../../../core/services/movie.service";
 import { ShowService } from "../../../core/services/show.service";
+import { CarouselComponent } from "../../../shared/carousel/carousel";
 
 /** Table status filter options for the shows ledger. */
 type ShowFilter = "upcoming" | "closed" | "all";
@@ -36,11 +36,16 @@ const EMPTY_FORM: ShowForm = {
   totalSeats: null
 };
 
-/** Auto-advance interval for the top carousel, in milliseconds (matches Manage Movies). */
-const SLIDE_INTERVAL_MS = 4000;
-
 /** Largest theater capacity a single show can be scheduled for. */
 const MAX_SEATS = 250;
+
+/** One movie-wise carousel slide: a movie plus the dates of its upcoming shows. */
+interface CarouselMovie {
+  posterUrl: string;
+  title: string;
+  movie: Movie;
+  dates: string[];
+}
 
 /**
  * Admin "Manage Shows" page. Lets a theater owner schedule screenings of catalog
@@ -55,10 +60,10 @@ const MAX_SEATS = 250;
     FormsModule,
     CurrencyPipe,
     DatePipe,
+    CarouselComponent,
     LucideArmchair,
     LucideCalendarClock,
     LucideCheck,
-    LucideClock,
     LucideFilm,
     LucideLanguages,
     LucideLoader,
@@ -70,7 +75,7 @@ const MAX_SEATS = 250;
   templateUrl: "./manage-shows.html",
   styleUrl: "./manage-shows.css"
 })
-export class ManageShowsComponent implements OnInit, OnDestroy {
+export class ManageShowsComponent implements OnInit {
   private readonly showService = inject(ShowService);
   private readonly movieService = inject(MovieService);
 
@@ -106,10 +111,6 @@ export class ManageShowsComponent implements OnInit, OnDestroy {
   /** Active table filter. Defaults to upcoming shows. */
   readonly filter = signal<ShowFilter>("upcoming");
 
-  /** Active carousel slide index. */
-  readonly slideIndex = signal(0);
-  private timer?: ReturnType<typeof setInterval>;
-
   /** Earliest selectable date for the picker — no scheduling in the past. */
   readonly minDate = signal<string>("");
 
@@ -121,11 +122,6 @@ export class ManageShowsComponent implements OnInit, OnDestroy {
     this.movieService.load().subscribe();
     this.showService.load().subscribe();
     this.minDate.set(this.todayIso());
-    this.startAutoSlide();
-  }
-
-  ngOnDestroy(): void {
-    this.stopAutoSlide();
   }
 
   // ── Derived values ───────────────────────────────────────────────────────────
@@ -139,12 +135,33 @@ export class ManageShowsComponent implements OnInit, OnDestroy {
   /** Languages offered by the selected movie, as chips (drives the single-select badges). */
   readonly availableLanguages = computed(() => this.toChips(this.selectedMovie()?.languages));
 
-  /** Carousel source: upcoming shows joined with their movie metadata. */
-  readonly carouselShows = computed(() =>
-    this.upcoming()
-      .map((show) => ({ show, movie: this.movieIndex().get(show.movieId) }))
-      .filter((entry): entry is { show: Show; movie: Movie } => !!entry.movie)
-  );
+  /**
+   * Carousel source: one slide per movie (not per show), each carrying that
+   * movie's upcoming show dates sorted soonest-first. Built from the existing
+   * `upcoming()` signal and `movieIndex()` lookup.
+   */
+  readonly carouselMovies = computed<CarouselMovie[]>(() => {
+    const byMovie = new Map<number, CarouselMovie>();
+    for (const show of this.upcoming()) {
+      const movie = this.movieIndex().get(show.movieId);
+      if (!movie) continue;
+      const entry = byMovie.get(movie.id);
+      if (entry) {
+        entry.dates.push(show.showTime);
+      } else {
+        byMovie.set(movie.id, {
+          posterUrl: movie.posterUrl,
+          title: movie.title,
+          movie,
+          dates: [show.showTime]
+        });
+      }
+    }
+    return Array.from(byMovie.values()).map((entry) => ({
+      ...entry,
+      dates: [...entry.dates].sort()
+    }));
+  });
 
   /** Rows shown in the ledger, per the active filter. */
   readonly filteredShows = computed(() => {
@@ -228,57 +245,6 @@ export class ManageShowsComponent implements OnInit, OnDestroy {
 
   isLanguageSelected(language: string): boolean {
     return this.selectedLanguage()?.toLowerCase() === language.toLowerCase();
-  }
-
-  // ── Carousel ──────────────────────────────────────────────────────────────────
-
-  safeIndex(): number {
-    const total = this.carouselShows().length;
-    return total === 0 ? 0 : this.slideIndex() % total;
-  }
-
-  next(): void {
-    const total = this.carouselShows().length;
-    if (total === 0) {
-      return;
-    }
-    this.slideIndex.set((this.safeIndex() + 1) % total);
-    this.restartAutoSlide();
-  }
-
-  prev(): void {
-    const total = this.carouselShows().length;
-    if (total === 0) {
-      return;
-    }
-    this.slideIndex.set((this.safeIndex() - 1 + total) % total);
-    this.restartAutoSlide();
-  }
-
-  goToSlide(index: number): void {
-    this.slideIndex.set(index);
-    this.restartAutoSlide();
-  }
-
-  private startAutoSlide(): void {
-    this.timer = setInterval(() => {
-      const total = this.carouselShows().length;
-      if (total > 1) {
-        this.slideIndex.update((i) => (i + 1) % total);
-      }
-    }, SLIDE_INTERVAL_MS);
-  }
-
-  private stopAutoSlide(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-  }
-
-  private restartAutoSlide(): void {
-    this.stopAutoSlide();
-    this.startAutoSlide();
   }
 
   // ── Table filter ────────────────────────────────────────────────────────────

@@ -1,5 +1,8 @@
 :host {
-  /* Establish a block containing block that spans the full document height so the
-     sticky navbar (and sidebar) anchor correctly instead of scrolling away. */
-  display: block;
+  /* Full-height flex column so the footer is pushed to the bottom of the viewport
+     on short pages (sticky-footer layout), while the sticky navbar/sidebar still
+     anchor correctly. The middle content region grows via flex-1 in app.html. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }

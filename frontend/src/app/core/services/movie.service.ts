@@ -30,6 +30,11 @@ export class MovieService {
       .pipe(tap((list) => this.movies.set(list)));
   }
 
+  /** Single movie by id — used by the user booking page when the catalog is empty. */
+  getOne(id: number): Observable<Movie> {
+    return this.http.get<Movie>(`${this.base}/${id}`);
+  }
+
   create(payload: MoviePayload): Observable<Movie> {
     return this.http
       .post<Movie>(this.base, payload)

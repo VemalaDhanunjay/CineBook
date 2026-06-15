@@ -8,5 +8,5 @@ export const guestGuard: CanActivateFn = () => {
   if (!auth.isLoggedIn()) {
     return true;
   }
-  return router.createUrlTree([auth.isAdmin() ? "/manage-movies" : "/"]);
+  return router.createUrlTree([auth.isAdmin() ? "/manage-movies" : "/movies"]);
 };

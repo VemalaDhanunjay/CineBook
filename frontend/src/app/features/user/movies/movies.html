@@ -1,0 +1,287 @@
+<div id="movies-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
+  <!-- Hero — top 3 newest titles. Reuses the shared admin carousel. -->
+  @if (heroSlides().length) {
+    <app-carousel [items]="heroSlides()" [intervalMs]="5000">
+      <ng-template let-movie>
+        <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+          Now showing
+        </span>
+        <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+          {{ movie.title }}
+        </h3>
+        <p class="mt-2 text-sm font-medium text-white/85">
+          {{ movie.genre }} <span class="opacity-60">&bull;</span> {{ movie.durationMins }} min
+        </p>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          @for (g of toChips(movie.genre); track g) {
+            <span class="chip chip-on-dark">{{ g }}</span>
+          }
+        </div>
+        <button type="button" class="btn-primary mt-4" (click)="bookMovie(movie)">
+          <svg lucideTicket class="h-4 w-4"></svg>
+          Book Tickets
+          <svg lucideArrowRight class="h-4 w-4"></svg>
+        </button>
+      </ng-template>
+    </app-carousel>
+  }
+
+  <!-- Section header + search + theater dropdown -->
+  <header id="movies-header" class="mb-4 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="flex items-center gap-2 text-xl font-bold text-gray-900">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
+          <svg lucideFilm class="h-4 w-4"></svg>
+        </span>
+        Now Showing
+      </h1>
+      <p class="mt-1 text-sm text-gray-600">Pick a movie to book your seats.</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative">
+        <svg
+          lucideSearch
+          class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+        ></svg>
+        <input
+          id="movies-search"
+          type="search"
+          class="input pl-9"
+          placeholder="Search movies..."
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
+      </div>
+      <div class="relative">
+        <svg
+          lucideStore
+          class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+        ></svg>
+        <select
+          id="movies-theater"
+          class="input pl-9 pr-8"
+          [ngModel]="selectedTheater()"
+          (ngModelChange)="selectedTheater.set($event)"
+        >
+          <option value="ALL">All theaters</option>
+          @for (t of theatersInLocation(); track t.id) {
+            <option [value]="t.id">{{ t.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Active filter chips — show what's narrowing the grid right now -->
+  @if (selectedLocation() || selectedTheater() !== "ALL" || selectedGenre() !== "ALL" || selectedLanguage() !== "ALL" || search()) {
+    <div class="mb-4 flex flex-wrap items-center gap-2 text-xs">
+      <span class="text-gray-500">Filters:</span>
+      @if (selectedLocation(); as city) {
+        <span class="filter-pill">
+          <svg lucideMapPin class="h-3 w-3"></svg>
+          {{ city }}
+        </span>
+      }
+      @if (selectedTheater() !== "ALL") {
+        <span class="filter-pill">
+          <svg lucideStore class="h-3 w-3"></svg>
+          {{ theaterNameLookup(selectedTheater()) }}
+        </span>
+      }
+      @if (selectedGenre() !== "ALL") {
+        <span class="filter-pill">{{ selectedGenre() }}</span>
+      }
+      @if (selectedLanguage() !== "ALL") {
+        <span class="filter-pill">{{ selectedLanguage() }}</span>
+      }
+      @if (search()) {
+        <span class="filter-pill">"{{ search() }}"</span>
+      }
+      <button type="button" class="text-tomato-600 hover:text-tomato-500 font-semibold underline-offset-2 hover:underline" (click)="clearFilters()">
+        Clear all
+      </button>
+    </div>
+  }
+
+  <!-- Genre pills -->
+  <div id="movies-genres" class="mb-3 flex flex-wrap items-center gap-2">
+    <span class="filter-label">
+      <svg lucideFilm class="h-3.5 w-3.5"></svg>
+      Genre
+    </span>
+    <button
+      type="button"
+      class="pill"
+      [class.is-active]="selectedGenre() === 'ALL'"
+      (click)="setGenre('ALL')"
+    >
+      All
+    </button>
+    @for (g of genres(); track g) {
+      <button
+        type="button"
+        class="pill"
+        [class.is-active]="selectedGenre() === g"
+        (click)="setGenre(g)"
+      >
+        {{ g }}
+      </button>
+    }
+  </div>
+
+  <!-- Language pills -->
+  <div id="movies-languages" class="mb-6 flex flex-wrap items-center gap-2">
+    <span class="filter-label">
+      <svg lucideLanguages class="h-3.5 w-3.5"></svg>
+      Language
+    </span>
+    <button
+      type="button"
+      class="pill lang-pill"
+      [class.is-active]="selectedLanguage() === 'ALL'"
+      (click)="setLanguage('ALL')"
+    >
+      All
+    </button>
+    @for (l of languages(); track l) {
+      <button
+        type="button"
+        class="pill lang-pill"
+        [class.is-active]="selectedLanguage() === l"
+        (click)="setLanguage(l)"
+      >
+        {{ l }}
+      </button>
+    }
+  </div>
+
+  <!-- Movie grid -->
+  @if (filteredMovies().length) {
+    <section
+      id="movies-grid"
+      class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+    >
+      @for (movie of filteredMovies(); track movie.id) {
+        <article
+          [id]="'movie-card-' + movie.id"
+          class="movie-card group card overflow-hidden text-left transition-shadow hover:shadow-lg"
+        >
+          <div
+            class="movie-card-poster"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Book tickets for ' + movie.title"
+            (click)="bookMovie(movie, $event)"
+            (keydown.enter)="bookMovie(movie, $event)"
+            (keydown.space)="bookMovie(movie, $event)"
+          >
+            @if (movie.posterUrl) {
+              <img [src]="movie.posterUrl" [alt]="movie.title" />
+            } @else {
+              <div class="movie-card-poster-fallback">{{ posterInitials(movie.title) }}</div>
+            }
+
+            <div class="movie-card-tl">
+              @if (trendingIds().has(movie.id)) {
+                <span class="trending-chip">
+                  <svg lucideFlame class="h-3 w-3"></svg>
+                  TRENDING
+                </span>
+              }
+              @if (toChips(movie.genre)[0]; as primaryGenre) {
+                <span class="chip-on-dark uppercase">{{ primaryGenre }}</span>
+              }
+            </div>
+
+            <span class="movie-card-tr chip-on-dark">
+              <svg lucideClock class="h-3 w-3"></svg>
+              {{ movie.durationMins }} min
+            </span>
+
+            <!-- Hover hint signalling the poster is clickable (→ booking). -->
+            <div class="movie-card-book-hint">
+              <span class="movie-card-book-hint-pill">
+                <svg lucideTicket class="h-3.5 w-3.5"></svg>
+                Book Now
+              </span>
+            </div>
+          </div>
+
+          <div class="movie-card-body">
+            <h3 class="movie-card-title">{{ movie.title }}</h3>
+            <p class="movie-card-meta">
+              {{ toChips(movie.genre)[0] || movie.genre }}
+              @if (movie.languages) {
+                <span class="opacity-50">&bull;</span> {{ toChips(movie.languages).join(", ") }}
+              }
+            </p>
+
+            <div class="flex items-center gap-1 text-xs">
+              @if (ratingFor(movie.id); as rating) {
+                @if (rating.reviewCount > 0) {
+                  <span
+                    class="flex items-center gap-0.5"
+                    [attr.title]="rating.averageRating.toFixed(1) + ' / 5'"
+                  >
+                    @for (f of tomatoFills(rating.averageRating); track $index) {
+                      <app-tomato-icon class="h-3.5 w-3.5" [fill]="f" />
+                    }
+                  </span>
+                  <span class="ml-0.5 font-bold text-tomato-600">
+                    {{ rating.averageRating.toFixed(1) }}
+                  </span>
+                  <span class="font-medium text-gray-400">({{ rating.reviewCount }})</span>
+                } @else {
+                  <span class="font-medium text-gray-400">No reviews yet</span>
+                }
+              } @else {
+                <span class="font-medium text-gray-400">No reviews yet</span>
+              }
+            </div>
+
+            <div class="mt-auto flex flex-col gap-1.5 pt-1">
+              <button
+                [id]="'movie-book-' + movie.id"
+                type="button"
+                class="btn-primary movie-card-book-btn"
+                (click)="bookMovie(movie, $event)"
+              >
+                <svg lucideTicket class="h-3.5 w-3.5"></svg>
+                Book Tickets
+              </button>
+              <button
+                [id]="'movie-trailer-' + movie.id"
+                type="button"
+                class="btn-ghost movie-card-trailer-btn"
+                (click)="openTrailer(movie, $event)"
+                [disabled]="!movie.trailerUrl"
+                [attr.title]="movie.trailerUrl ? 'Play trailer' : 'No trailer available'"
+              >
+                <svg lucidePlay class="h-3.5 w-3.5"></svg>
+                View Trailer
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </section>
+  } @else {
+    <div id="movies-empty" class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <svg lucideFilm class="h-10 w-10 text-gray-400"></svg>
+      <p class="text-sm font-medium text-gray-700">
+        No movies match your filters.
+      </p>
+      <button type="button" class="btn-ghost py-1.5 text-sm" (click)="clearFilters()">
+        Clear filters
+      </button>
+    </div>
+  }
+
+  <app-trailer-modal
+    [open]="!!trailerMovie()"
+    [trailerUrl]="trailerMovie()?.trailerUrl ?? null"
+    [title]="trailerMovie()?.title ?? 'Trailer'"
+    (close)="closeTrailer()"
+  />
+</div>

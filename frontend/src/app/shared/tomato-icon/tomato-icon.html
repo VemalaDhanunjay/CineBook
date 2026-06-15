@@ -1,0 +1,27 @@
+<span class="t-wrap">
+  <!-- Base outline (always shown) -->
+  <svg class="t-layer" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      class="t-body t-body-empty"
+      d="M12 20.5C7.3 20.5 4 17.2 4 13 4 8.9 7.2 6.5 12 6.5s8 2.4 8 6.5c0 4.2-3.3 7.5-8 7.5z"
+    />
+    <path
+      class="t-leaf t-leaf-empty"
+      d="M12 2.5l.88 2.29 2.45.13-1.9 1.54.63 2.37L12 7.5l-2.06 1.33.63-2.37-1.9-1.54 2.45-.13z"
+    />
+  </svg>
+
+  <!-- Filled layer (clipped to the left half when `half`) -->
+  @if (fill() !== "empty") {
+    <svg class="t-layer t-fill" [class.t-half]="fill() === 'half'" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        class="t-body t-body-full"
+        d="M12 20.5C7.3 20.5 4 17.2 4 13 4 8.9 7.2 6.5 12 6.5s8 2.4 8 6.5c0 4.2-3.3 7.5-8 7.5z"
+      />
+      <path
+        class="t-leaf t-leaf-full"
+        d="M12 2.5l.88 2.29 2.45.13-1.9 1.54.63 2.37L12 7.5l-2.06 1.33.63-2.37-1.9-1.54 2.45-.13z"
+      />
+    </svg>
+  }
+</span>

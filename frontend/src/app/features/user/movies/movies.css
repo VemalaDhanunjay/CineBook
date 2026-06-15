@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+
+/* Label beside a row of pills — e.g. "Genre", "Language". */
+.filter-label {
+  @apply inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-wider text-gray-600;
+}
+
+/* Active-filter chip rendered in the "Filters: ..." summary row. */
+.filter-pill {
+  @apply inline-flex items-center gap-1 rounded-full bg-tomato-500/10 px-2.5 py-1 text-[0.7rem] font-semibold text-tomato-600;
+}
+
+/* ── Movie card ───────────────────────────────────────────────────────────── */
+.movie-card {
+  @apply relative flex w-full flex-col bg-white p-0 text-gray-900;
+}
+
+.movie-card-poster {
+  @apply relative aspect-[3/4] w-full cursor-pointer overflow-hidden bg-ink-800;
+}
+.movie-card-poster img {
+  @apply h-full w-full object-cover transition-transform duration-300 group-hover:scale-105;
+}
+.movie-card-poster-fallback {
+  @apply flex h-full w-full items-center justify-center bg-gradient-to-br from-tomato-500/40 to-ink-900 text-2xl font-extrabold uppercase text-white;
+}
+
+.movie-card-tl {
+  @apply absolute left-2 top-2 flex flex-col items-start gap-1;
+}
+.movie-card-tr {
+  @apply absolute right-2 top-2;
+}
+
+/* The whole poster is clickable (→ booking); show a "Book Now" hint on hover. */
+.movie-card-book-hint {
+  @apply pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent pb-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100;
+}
+.movie-card-book-hint-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full bg-tomato-500 px-3 py-1 text-xs font-bold text-white shadow-lg;
+}
+
+.movie-card-body {
+  @apply flex flex-1 flex-col gap-1.5 bg-white px-3 py-3;
+}
+.movie-card-title {
+  @apply line-clamp-1 text-sm font-bold text-gray-900;
+}
+.movie-card-meta {
+  @apply line-clamp-1 text-xs font-medium text-gray-500;
+}
+
+/* Full-width primary Book button + ghost View Trailer, grouped at the card bottom. */
+.movie-card-book-btn {
+  @apply w-full justify-center py-2 text-xs;
+}
+.movie-card-trailer-btn {
+  @apply w-full justify-center py-1.5 text-xs;
+}
+
+.trending-chip {
+  @apply inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-wider text-amber-950 shadow-sm;
+}
+
+/* Distinguishes the language row's active state from the genre row's. */
+.pill.lang-pill.is-active {
+  @apply bg-emerald-500 text-white hover:bg-emerald-600;
+}

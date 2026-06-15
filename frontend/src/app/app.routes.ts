@@ -43,9 +43,41 @@ export const routes: Routes = [
       import("./features/admin/analytics/analytics").then((m) => m.AnalyticsComponent)
   },
   {
-    path: "",
+    path: "movies",
     canActivate: [authGuard],
-    loadComponent: () => import("./features/user/home/home").then((m) => m.HomeComponent)
+    loadComponent: () =>
+      import("./features/user/movies/movies").then((m) => m.MoviesComponent)
+  },
+  {
+    path: "movies/:id/book",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/user/booking/booking").then((m) => m.BookingComponent)
+  },
+  {
+    path: "theaters",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/user/theaters/theaters").then((m) => m.TheatersComponent)
+  },
+  {
+    path: "theaters/:id",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/user/theater-detail/theater-detail").then(
+        (m) => m.TheaterDetailComponent
+      )
+  },
+  {
+    path: "my-bookings",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/user/my-bookings/my-bookings").then((m) => m.MyBookingsComponent)
+  },
+  {
+    path: "",
+    pathMatch: "full",
+    redirectTo: "movies"
   },
   { path: "**", redirectTo: "" }
 ];

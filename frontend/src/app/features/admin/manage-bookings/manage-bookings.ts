@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from "@angular/core";
+import { Component, HostListener, OnInit, computed, inject, signal } from "@angular/core";
 import {
   LucideCheck,
   LucideChevronDown,
@@ -14,15 +14,13 @@ import {
 } from "@lucide/angular";
 import { AdminBooking, BookingStatus } from "../../../core/models/catalog.model";
 import { BookingService } from "../../../core/services/booking.service";
+import { CarouselComponent } from "../../../shared/carousel/carousel";
 
 /** Ledger tab — drives the bottom table only, never the KPI summaries. */
 type StatusTab = "ALL" | "CONFIRMED" | "CANCELLED";
 
 /** Single-select movie filter — `"ALL"` means "no filter". */
 type MovieFilter = number | "ALL";
-
-/** Auto-advance interval for the top carousel, in milliseconds (matches Manage Shows). */
-const SLIDE_INTERVAL_MS = 4000;
 
 /**
  * Admin "All Bookings" page. Theater-scoped via the admin's JWT, so every row,
@@ -39,6 +37,7 @@ const SLIDE_INTERVAL_MS = 4000;
   imports: [
     CurrencyPipe,
     DatePipe,
+    CarouselComponent,
     LucideCheck,
     LucideChevronDown,
     LucideClock,
@@ -53,7 +52,7 @@ const SLIDE_INTERVAL_MS = 4000;
   templateUrl: "./manage-bookings.html",
   styleUrl: "./manage-bookings.css"
 })
-export class ManageBookingsComponent implements OnInit, OnDestroy {
+export class ManageBookingsComponent implements OnInit {
   private readonly bookingService = inject(BookingService);
 
   // ── Source signals from the shared service ───────────────────────────────────
@@ -70,10 +69,6 @@ export class ManageBookingsComponent implements OnInit, OnDestroy {
   /** Whether the rich movie dropdown menu is currently open. */
   readonly dropdownOpen = signal(false);
 
-  // ── Carousel state (verbatim pattern from manage-shows.ts) ──────────────────
-  readonly slideIndex = signal(0);
-  private timer?: ReturnType<typeof setInterval>;
-
   ngOnInit(): void {
     // Signals are seeded with []/0 so the KPI grid renders immediately with zeros.
     // A failed load (e.g. backend down) is logged but must not break the page —
@@ -81,11 +76,6 @@ export class ManageBookingsComponent implements OnInit, OnDestroy {
     this.bookingService.load().subscribe({
       error: (err) => console.error("Failed to load admin bookings", err)
     });
-    this.startAutoSlide();
-  }
-
-  ngOnDestroy(): void {
-    this.stopAutoSlide();
   }
 
   // ── Derived values ───────────────────────────────────────────────────────────
@@ -224,53 +214,6 @@ export class ManageBookingsComponent implements OnInit, OnDestroy {
   @HostListener("document:keydown.escape")
   onEscape(): void {
     if (this.dropdownOpen()) this.closeDropdown();
-  }
-
-  // ── Carousel (verbatim pattern from manage-shows.ts) ────────────────────────
-
-  safeIndex(): number {
-    const total = this.mostBooked().length;
-    return total === 0 ? 0 : this.slideIndex() % total;
-  }
-
-  next(): void {
-    const total = this.mostBooked().length;
-    if (total === 0) return;
-    this.slideIndex.set((this.safeIndex() + 1) % total);
-    this.restartAutoSlide();
-  }
-
-  prev(): void {
-    const total = this.mostBooked().length;
-    if (total === 0) return;
-    this.slideIndex.set((this.safeIndex() - 1 + total) % total);
-    this.restartAutoSlide();
-  }
-
-  goToSlide(index: number): void {
-    this.slideIndex.set(index);
-    this.restartAutoSlide();
-  }
-
-  private startAutoSlide(): void {
-    this.timer = setInterval(() => {
-      const total = this.mostBooked().length;
-      if (total > 1) {
-        this.slideIndex.update((i) => (i + 1) % total);
-      }
-    }, SLIDE_INTERVAL_MS);
-  }
-
-  private stopAutoSlide(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = undefined;
-    }
-  }
-
-  private restartAutoSlide(): void {
-    this.stopAutoSlide();
-    this.startAutoSlide();
   }
 
   // ── Template helpers ─────────────────────────────────────────────────────────

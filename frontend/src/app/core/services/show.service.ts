@@ -2,7 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { Show, ShowPayload } from "../models/catalog.model";
+import { PublicShow, Show, ShowPayload } from "../models/catalog.model";
 
 /**
  * Show (screening) state + CRUD. Mirrors {@link MovieService}: the list lives in a
@@ -70,5 +70,21 @@ export class ShowService {
           this.shows.update((list) => list.filter((show) => show.id !== id))
         )
       );
+  }
+
+  /**
+   * Public upcoming shows for one movie, theater-enriched. Used by the user
+   * booking page; does NOT mutate the admin-side `shows` signal.
+   */
+  listForMovie(movieId: number): Observable<PublicShow[]> {
+    return this.http.get<PublicShow[]>(this.base, { params: { movieId } });
+  }
+
+  /**
+   * Public upcoming shows for one theater, theater-enriched. Used by the theater
+   * detail page; does NOT mutate the admin-side `shows` signal.
+   */
+  listForTheater(theaterId: number): Observable<PublicShow[]> {
+    return this.http.get<PublicShow[]>(this.base, { params: { theaterId } });
   }
 }

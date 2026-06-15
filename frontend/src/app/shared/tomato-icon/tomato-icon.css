@@ -1,0 +1,46 @@
+:host {
+  display: inline-block;
+  line-height: 0;
+  /* Decorative only — let hover/click pass through to the parent (e.g. the rate
+     picker button) so the tomato never swallows pointer events. */
+  pointer-events: none;
+}
+
+.t-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.t-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reveal only the left half of the filled layer for fractional ratings. */
+.t-fill.t-half {
+  clip-path: inset(0 50% 0 0);
+}
+
+.t-body {
+  stroke-width: 1.4;
+}
+
+/* Empty = soft gray outline (no fill); filled = tomato body + green calyx. */
+.t-body-empty {
+  fill: #fff;
+  stroke: #d1d5db; /* gray-300 */
+}
+.t-leaf-empty {
+  fill: #d1d5db; /* gray-300 */
+}
+.t-body-full {
+  fill: #ff4d4d; /* tomato-500 */
+  stroke: #e63946; /* tomato-600 */
+}
+.t-leaf-full {
+  fill: #16a34a; /* green-600 */
+}

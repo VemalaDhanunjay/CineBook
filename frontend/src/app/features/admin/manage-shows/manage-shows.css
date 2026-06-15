@@ -18,41 +18,6 @@
   @apply border-tomato-500 bg-tomato-500 text-white hover:bg-tomato-600;
 }
 
-/* Carousel — cross-fade with a slight Ken-Burns zoom (matches Manage Movies) */
-.carousel-track {
-  @apply relative h-[14.4rem] sm:h-[16rem];
-}
-.carousel-slide {
-  @apply absolute inset-0 overflow-hidden opacity-0 scale-105 transition-[opacity,transform] duration-700 ease-in-out pointer-events-none;
-}
-.carousel-slide.is-active {
-  @apply opacity-100 scale-100 pointer-events-auto;
-}
-.carousel-bg {
-  @apply absolute inset-0 h-full w-full scale-110 object-cover blur-2xl;
-}
-.carousel-overlay {
-  @apply absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40;
-}
-.carousel-inner {
-  @apply relative z-10 flex h-full items-center gap-5 p-5 sm:gap-7 sm:p-7;
-}
-.carousel-poster {
-  @apply aspect-[2/3] h-[82%] flex-shrink-0 rounded-lg object-cover shadow-2xl ring-1 ring-white/15;
-}
-.carousel-details {
-  @apply min-w-0 flex-1;
-}
-.carousel-dots {
-  @apply absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2;
-}
-.carousel-dot {
-  @apply h-2 w-2 rounded-full bg-white/50 transition-all hover:bg-white/80;
-}
-.carousel-dot.is-active {
-  @apply w-5 bg-tomato-500;
-}
-
 /* Horizontal movie picker — scrolls with the cursor when there are many movies */
 .movie-row {
   @apply flex gap-3 overflow-x-auto pb-2;

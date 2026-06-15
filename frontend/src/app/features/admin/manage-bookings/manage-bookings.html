@@ -195,53 +195,21 @@
     </div>
   </section>
 
-  <!-- Feature 3 — "Most Booked" carousel (reuses the existing carousel pattern) -->
-  @if (mostBooked().length) {
-    <section id="ab-carousel" class="card relative mb-8 overflow-hidden">
-      <div id="ab-carousel-track" class="carousel-track">
-        @for (movie of mostBooked(); track movie.movieId; let i = $index) {
-          <div
-            [id]="'ab-carousel-slide-' + movie.movieId"
-            class="carousel-slide"
-            [class.is-active]="i === safeIndex()"
-          >
-            <img [src]="movie.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
-            <div class="carousel-overlay"></div>
-            <div class="carousel-inner">
-              <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-poster" />
-              <div class="carousel-details">
-                <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
-                  Most Booked · {{ movie.totalSeatsBooked }} seats
-                </span>
-                <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
-                  {{ movie.title }}
-                </h3>
-                <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
-                  <svg lucideTicket class="h-4 w-4"></svg>
-                  {{ movie.totalBookings }} booking{{ movie.totalBookings === 1 ? "" : "s" }}
-                </p>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-
-      @if (mostBooked().length > 1) {
-        <div id="ab-carousel-dots" class="carousel-dots">
-          @for (movie of mostBooked(); track movie.movieId; let i = $index) {
-            <button
-              [id]="'ab-carousel-dot-' + i"
-              type="button"
-              class="carousel-dot"
-              [class.is-active]="i === safeIndex()"
-              (click)="goToSlide(i)"
-              [attr.aria-label]="'Go to slide ' + (i + 1)"
-            ></button>
-          }
-        </div>
-      }
-    </section>
-  }
+  <!-- Feature 3 — "Most Booked" carousel (shared CarouselComponent) -->
+  <app-carousel [items]="mostBooked()">
+    <ng-template let-movie>
+      <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+        Most Booked · {{ movie.totalSeatsBooked }} seats
+      </span>
+      <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+        {{ movie.title }}
+      </h3>
+      <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
+        <svg lucideTicket class="h-4 w-4"></svg>
+        {{ movie.totalBookings }} booking{{ movie.totalBookings === 1 ? "" : "s" }}
+      </p>
+    </ng-template>
+  </app-carousel>
 
   <!-- Feature 4 — Status-tabbed history ledger (movie filter lives in its header) -->
   <section id="ab-ledger" class="card overflow-hidden">

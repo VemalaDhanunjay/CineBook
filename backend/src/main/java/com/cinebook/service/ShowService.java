@@ -1,14 +1,22 @@
 package com.cinebook.service;
 
+import com.cinebook.dto.PublicShowResponse;
 import com.cinebook.dto.ShowRequest;
 import com.cinebook.entity.Show;
+import com.cinebook.entity.Theater;
 import com.cinebook.exception.ApiException;
 import com.cinebook.repository.MovieRepository;
 import com.cinebook.repository.ShowRepository;
+import com.cinebook.repository.TheaterRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * CRUD for shows (screenings). Mirrors {@link MovieService}: deletes are soft (the
@@ -23,16 +31,80 @@ public class ShowService {
 
     private final ShowRepository showRepository;
     private final MovieRepository movieRepository;
+    private final TheaterRepository theaterRepository;
 
-    public ShowService(ShowRepository showRepository, MovieRepository movieRepository) {
+    public ShowService(ShowRepository showRepository,
+                       MovieRepository movieRepository,
+                       TheaterRepository theaterRepository) {
         this.showRepository = showRepository;
         this.movieRepository = movieRepository;
+        this.theaterRepository = theaterRepository;
     }
 
     /** All non-deleted shows for a single theater (the admin's own theater). */
     public List<Show> listShows(Long theaterId) {
         requireTheater(theaterId);
         return showRepository.findByTheaterIdAndDeletedFalse(theaterId);
+    }
+
+    /**
+     * Upcoming (future) shows for one movie, theater-enriched, soonest first.
+     * Drives the user booking page; not theater-scoped because users browse the
+     * whole platform.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicShowResponse> listUpcomingForMovie(Long movieId) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Show> shows = showRepository.findByMovieIdAndDeletedFalse(movieId).stream()
+                .filter(show -> show.getShowTime() != null && show.getShowTime().isAfter(now))
+                .sorted(Comparator.comparing(Show::getShowTime))
+                .toList();
+        if (shows.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> theaterIds = shows.stream().map(Show::getTheaterId).distinct().toList();
+        Map<Long, Theater> theatersById = theaterRepository.findAllById(theaterIds).stream()
+                .collect(Collectors.toMap(Theater::getId, Function.identity()));
+
+        return shows.stream()
+                .map(show -> toPublicResponse(show, theatersById.get(show.getTheaterId())))
+                .toList();
+    }
+
+    /**
+     * Upcoming (future) shows for one theater, soonest first. Drives the theater
+     * detail page; not theater-scoped to the caller because users browse every venue.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicShowResponse> listUpcomingForTheater(Long theaterId) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Show> shows = showRepository.findByTheaterIdAndDeletedFalse(theaterId).stream()
+                .filter(show -> show.getShowTime() != null && show.getShowTime().isAfter(now))
+                .sorted(Comparator.comparing(Show::getShowTime))
+                .toList();
+        if (shows.isEmpty()) {
+            return List.of();
+        }
+        Theater theater = theaterRepository.findById(theaterId).orElse(null);
+        return shows.stream()
+                .map(show -> toPublicResponse(show, theater))
+                .toList();
+    }
+
+    private PublicShowResponse toPublicResponse(Show show, Theater theater) {
+        PublicShowResponse dto = new PublicShowResponse();
+        dto.setId(show.getId());
+        dto.setMovieId(show.getMovieId());
+        dto.setTheaterId(show.getTheaterId());
+        dto.setTheaterName(theater == null ? null : theater.getName());
+        dto.setTheaterLocation(theater == null ? null : theater.getLocation());
+        dto.setShowTime(show.getShowTime());
+        dto.setLanguage(show.getLanguage());
+        dto.setTicketPrice(show.getTicketPrice());
+        dto.setTotalSeats(show.getTotalSeats());
+        dto.setAvailableSeats(show.getAvailableSeats());
+        return dto;
     }
 
     public Show getShow(Long id) {
