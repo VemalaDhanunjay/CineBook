@@ -106,3 +106,20 @@ export interface MostBookedMovie {
   totalSeatsBooked: number;
   totalBookings: number;
 }
+
+/** Average rating + review count per movie — drives the analytics "Top Rated" chart. */
+export interface MovieRating {
+  movieId: number;
+  title: string;
+  posterUrl: string | null;
+  averageRating: number;
+  reviewCount: number;
+}
+
+/** Waitlist tally per movie — drives the analytics "Audience Interest" footer cards. */
+export interface MovieInterestStat {
+  movieId: number;
+  title: string;
+  posterUrl: string | null;
+  waitlistCount: number;
+}

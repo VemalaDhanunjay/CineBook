@@ -1,0 +1,383 @@
+<div id="an-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
+  <!-- 1 — Title bar: heading + subtitle, time-range pill, refresh -->
+  <header id="an-header" class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 id="an-title" class="flex items-center gap-2 text-xl font-bold">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
+          <svg lucideChartColumn class="h-4 w-4"></svg>
+        </span>
+        Analytics
+      </h1>
+      <p id="an-subtitle" class="mt-1 text-sm text-gray-600">
+        Performance across {{ theaterName() }} · refreshes automatically.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Time-range segmented control (ledger-tabs pattern) -->
+      <div id="an-range" class="flex items-center gap-1 rounded-lg bg-ink-800 p-1">
+        @for (range of timeRanges; track range) {
+          <button
+            [id]="'an-range-' + range"
+            type="button"
+            class="filter-btn"
+            [class.is-active]="timeRange() === range"
+            (click)="setTimeRange(range)"
+          >
+            {{ range }} days
+          </button>
+        }
+      </div>
+
+      <button id="an-refresh" type="button" class="btn-ghost" (click)="refresh()">
+        <svg lucideRefreshCw class="h-4 w-4" [class.animate-spin]="refreshing()"></svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- 2 — KPI grid (4 → 2 → 1) -->
+  <section id="an-kpi-grid" class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div id="an-kpi-revenue" class="card flex items-start gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600">
+        <svg lucideWallet class="h-4 w-4"></svg>
+      </span>
+      <div class="min-w-0">
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Total Revenue
+        </p>
+        <p class="text-2xl font-bold text-emerald-600">
+          {{ totalRevenue() | currency: "INR" : "symbol-narrow" : "1.0-0" }}
+        </p>
+        <p class="mt-0.5 text-[0.7rem] text-gray-500">Net of refunds · last {{ timeRange() }} days</p>
+      </div>
+    </div>
+
+    <div id="an-kpi-seats" class="card flex items-start gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-tomato-500/10 text-tomato-600">
+        <svg lucideArmchair class="h-4 w-4"></svg>
+      </span>
+      <div class="min-w-0">
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">Seats Sold</p>
+        <p class="text-2xl font-bold text-gray-900">{{ seatsSold() }}</p>
+        <p class="mt-0.5 text-[0.7rem] text-gray-500">Confirmed footfall in range</p>
+      </div>
+    </div>
+
+    <div id="an-kpi-upcoming" class="card flex items-start gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-tomato-500/10 text-tomato-600">
+        <svg lucideCalendarClock class="h-4 w-4"></svg>
+      </span>
+      <div class="min-w-0">
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Upcoming Shows
+        </p>
+        <p class="text-2xl font-bold text-gray-900">{{ upcomingShows() }}</p>
+        <p class="mt-0.5 text-[0.7rem] text-gray-500">Scheduled ahead of now</p>
+      </div>
+    </div>
+
+    <div id="an-kpi-cancel" class="card flex items-start gap-3 px-4 py-3">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-amber-500/10 text-amber-600">
+        <svg lucideTrendingDown class="h-4 w-4"></svg>
+      </span>
+      <div class="min-w-0">
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
+          Cancellation Rate
+        </p>
+        <p class="text-2xl font-bold text-gray-900">
+          {{ cancellationRate() | number: "1.0-1" }}%
+        </p>
+        <p class="mt-0.5 text-[0.7rem] text-gray-500">
+          {{ cancelledCount() }} cancelled in range
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 — Filter strip: movie dropdown + grouping pill -->
+  <section
+    id="an-filter-strip"
+    class="card mb-6 flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+  >
+    <div id="an-filter-wrap" class="relative">
+      <button
+        id="an-filter-trigger"
+        type="button"
+        class="filter-trigger"
+        [class.is-open]="dropdownOpen()"
+        (click)="toggleDropdown()"
+        [attr.aria-expanded]="dropdownOpen()"
+        aria-haspopup="listbox"
+      >
+        @if (selectedMovie(); as picked) {
+          @if (picked.posterUrl) {
+            <img [src]="picked.posterUrl" [alt]="picked.title" class="filter-trigger-poster" />
+          } @else {
+            <span class="filter-trigger-icon"><svg lucideFilm class="h-4 w-4"></svg></span>
+          }
+          <span class="filter-trigger-text">
+            <span class="filter-trigger-title">{{ picked.title }}</span>
+            <span class="filter-trigger-meta">Filtering this movie</span>
+          </span>
+        } @else {
+          <span class="filter-trigger-icon"><svg lucideFilm class="h-4 w-4"></svg></span>
+          <span class="filter-trigger-text">
+            <span class="filter-trigger-title">All movies</span>
+            <span class="filter-trigger-meta">Aggregate across the theater</span>
+          </span>
+        }
+        <svg
+          lucideChevronDown
+          class="filter-trigger-chevron h-4 w-4"
+          [class.is-flipped]="dropdownOpen()"
+        ></svg>
+      </button>
+
+      @if (dropdownOpen()) {
+        <div id="an-filter-menu" class="filter-menu card" role="listbox">
+          <button
+            type="button"
+            class="filter-menu-row"
+            [class.is-active]="movieFilter() === 'ALL'"
+            (click)="pickMovie('ALL', $event)"
+            role="option"
+            [attr.aria-selected]="movieFilter() === 'ALL'"
+          >
+            <span class="filter-trigger-icon"><svg lucideFilm class="h-4 w-4"></svg></span>
+            <span class="filter-menu-text">
+              <span class="filter-menu-title">All movies</span>
+              <span class="filter-menu-meta">Aggregate across the theater</span>
+            </span>
+            @if (movieFilter() === "ALL") {
+              <svg lucideCheck class="h-4 w-4 text-tomato-500"></svg>
+            }
+          </button>
+
+          @for (option of movieOptions(); track option.id) {
+            <button
+              type="button"
+              class="filter-menu-row"
+              [class.is-active]="movieFilter() === option.id"
+              (click)="pickMovie(option.id, $event)"
+              role="option"
+              [attr.aria-selected]="movieFilter() === option.id"
+            >
+              @if (option.posterUrl) {
+                <img [src]="option.posterUrl" [alt]="option.title" class="filter-menu-poster" />
+              } @else {
+                <span class="filter-trigger-icon"><svg lucideFilm class="h-4 w-4"></svg></span>
+              }
+              <span class="filter-menu-text">
+                <span class="filter-menu-title">{{ option.title }}</span>
+                <span class="filter-menu-meta">Show-level analytics</span>
+              </span>
+              @if (movieFilter() === option.id) {
+                <svg lucideCheck class="h-4 w-4 text-tomato-500"></svg>
+              }
+            </button>
+          }
+
+          @if (movieOptions().length === 0) {
+            <p class="px-4 py-6 text-center text-xs text-gray-500">
+              No shows scheduled yet — movies appear here once they are listed.
+            </p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Grouping pill -->
+    <div id="an-grouping" class="flex items-center gap-1 rounded-lg bg-ink-800 p-1">
+      @for (group of groupings; track group) {
+        <button
+          [id]="'an-group-' + group"
+          type="button"
+          class="filter-btn"
+          [class.is-active]="grouping() === group"
+          (click)="setGrouping(group)"
+        >
+          {{ groupingLabel(group) }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- 4 — Main ticket bookings chart -->
+  <section id="an-bookings-chart" class="card mb-6 p-6">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h2 class="flex items-center gap-2 text-base font-bold">
+        <svg lucideTicket class="h-4 w-4 text-tomato-500"></svg>
+        Ticket Bookings
+      </h2>
+      <span class="text-xs text-gray-500">{{ groupingLabel(grouping()) }} · last {{ timeRange() }} days</span>
+    </div>
+    <div class="chart-box">
+      <canvas baseChart [type]="'bar'" [data]="bookingsChartData()" [options]="barOptions"></canvas>
+    </div>
+  </section>
+
+  <!-- 5 — Show occupancy table -->
+  <section id="an-occupancy" class="card mb-6 overflow-hidden">
+    <header class="border-b border-ink-700 px-5 py-4">
+      <h2 class="flex items-center gap-2 text-base font-bold">
+        <svg lucideArmchair class="h-4 w-4 text-tomato-500"></svg>
+        Show Occupancy
+      </h2>
+      <p class="text-xs text-gray-500">
+        {{ occupancyRows().length }} active show{{ occupancyRows().length === 1 ? "" : "s" }}
+      </p>
+    </header>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
+          <tr>
+            <th class="px-5 py-3">Movie</th>
+            <th class="px-5 py-3">Showtime</th>
+            <th class="px-5 py-3">Seats Booked</th>
+            <th class="px-5 py-3 w-[34%]">Occupancy</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of occupancyRows(); track row.showId) {
+            <tr class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+              <td class="px-5 py-3 font-medium text-gray-900">{{ row.title }}</td>
+              <td class="px-5 py-3 text-gray-600">
+                {{ row.showTime | date: "MMM d, y · h:mm a" }}
+              </td>
+              <td class="px-5 py-3 font-semibold text-gray-900">
+                {{ row.seatsBooked }} / {{ row.totalSeats }}
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="occ-track">
+                    <div
+                      class="occ-fill"
+                      [class]="fillBarClass(row.fillRate)"
+                      [style.width.%]="barWidth(row.fillRate)"
+                    ></div>
+                  </div>
+                  <span class="w-12 text-right text-xs font-semibold" [class]="fillTextClass(row.fillRate)">
+                    {{ row.fillRate | number: "1.0-0" }}%
+                  </span>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="px-5 py-10 text-center text-sm text-gray-500">
+                No upcoming shows for the current filter.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6 — Top performance + ratings split -->
+  <section id="an-split" class="mb-6 grid gap-6 lg:grid-cols-3">
+    <!-- Left: wide top-performance table -->
+    <div class="card overflow-hidden lg:col-span-2">
+      <header class="border-b border-ink-700 px-5 py-4">
+        <h2 class="flex items-center gap-2 text-base font-bold">
+          <svg lucideTrendingDown class="h-4 w-4 -scale-y-100 text-tomato-500"></svg>
+          Top Performing Shows
+        </h2>
+        <p class="text-xs text-gray-500">Ranked by net revenue</p>
+      </header>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-5 py-3">Movie</th>
+              <th class="px-5 py-3">Theater</th>
+              <th class="px-5 py-3">Language</th>
+              <th class="px-5 py-3">Time</th>
+              <th class="px-5 py-3">Seats</th>
+              <th class="px-5 py-3">Fill Rate</th>
+              <th class="px-5 py-3">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of topPerformance(); track row.showId) {
+              <tr class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+                <td class="px-5 py-3 font-medium text-gray-900">{{ row.title }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ theaterName() }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ row.language }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ row.showTime | date: "MMM d · h:mm a" }}</td>
+                <td class="px-5 py-3 font-semibold text-gray-900">
+                  {{ row.seatsBooked }} / {{ row.totalSeats }}
+                </td>
+                <td class="px-5 py-3 font-semibold" [class]="fillTextClass(row.fillRate)">
+                  {{ row.fillRate | number: "1.0-0" }}%
+                </td>
+                <td class="px-5 py-3 font-semibold text-emerald-600">
+                  {{ row.revenue | currency: "INR" : "symbol-narrow" : "1.0-0" }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-5 py-10 text-center text-sm text-gray-500">
+                  No shows to rank for the current filter.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right: compact ratings chart -->
+    <div class="card p-6">
+      <h2 class="mb-4 flex items-center gap-2 text-base font-bold">
+        <svg lucideStar class="h-4 w-4 text-amber-500"></svg>
+        Top Rated Movies
+      </h2>
+      @if (topRatedChartData().labels?.length) {
+        <div class="chart-box chart-box--sm">
+          <canvas
+            baseChart
+            [type]="'bar'"
+            [data]="topRatedChartData()"
+            [options]="ratingBarOptions"
+          ></canvas>
+        </div>
+      } @else {
+        <p class="py-10 text-center text-sm text-gray-500">No ratings yet.</p>
+      }
+    </div>
+  </section>
+
+  <!-- 7 — Audience interest footer -->
+  <section id="an-interest" class="mb-2">
+    <h2 class="mb-3 flex items-center gap-2 text-base font-bold">
+      <svg lucideFilm class="h-4 w-4 text-tomato-500"></svg>
+      Audience Interest
+      <span class="text-xs font-normal text-gray-500">— movies people are waiting to see</span>
+    </h2>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      @for (movie of audienceInterest(); track movie.movieId) {
+        <div class="card flex items-center gap-3 p-3">
+          @if (movie.posterUrl) {
+            <img [src]="movie.posterUrl" [alt]="movie.title" class="interest-poster" />
+          } @else {
+            <span class="interest-poster grid place-items-center bg-tomato-500/10 text-tomato-600">
+              <svg lucideFilm class="h-5 w-5"></svg>
+            </span>
+          }
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-gray-900">{{ movie.title }}</p>
+            <p class="mt-0.5 text-xs text-gray-500">
+              <span class="font-bold text-tomato-600">{{ movie.waitlistCount }}</span> waiting
+            </p>
+          </div>
+        </div>
+      } @empty {
+        <p class="col-span-full py-6 text-center text-sm text-gray-500">
+          No audience interest recorded yet.
+        </p>
+      }
+    </div>
+  </section>
+</div>

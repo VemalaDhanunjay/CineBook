@@ -1,6 +1,11 @@
 import { Component, computed, inject } from "@angular/core";
 import { RouterLink, RouterLinkActive } from "@angular/router";
-import { LucideCalendarClock, LucideClapperboard, LucideTicket } from "@lucide/angular";
+import {
+  LucideCalendarClock,
+  LucideChartColumn,
+  LucideClapperboard,
+  LucideTicket
+} from "@lucide/angular";
 import { Role } from "../../core/models/user.model";
 import { AuthService } from "../../core/services/auth.service";
 
@@ -9,7 +14,7 @@ interface NavItem {
   id: string;
   label: string;
   route: string;
-  icon: "clapperboard" | "calendar-clock" | "ticket";
+  icon: "clapperboard" | "calendar-clock" | "ticket" | "chart-column";
   roles: Role[];
 }
 
@@ -34,6 +39,13 @@ const NAV_ITEMS: NavItem[] = [
     route: "/manage-bookings",
     icon: "ticket",
     roles: ["ADMIN"]
+  },
+  {
+    id: "sidebar-analytics",
+    label: "Analytics",
+    route: "/analytics",
+    icon: "chart-column",
+    roles: ["ADMIN"]
   }
 ];
 
@@ -46,7 +58,14 @@ const NAV_ITEMS: NavItem[] = [
 @Component({
   selector: "app-sidebar",
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LucideClapperboard, LucideCalendarClock, LucideTicket],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    LucideClapperboard,
+    LucideCalendarClock,
+    LucideTicket,
+    LucideChartColumn
+  ],
   templateUrl: "./sidebar.html",
   styleUrl: "./sidebar.css",
   host: { "[class.hidden]": "!items().length" }

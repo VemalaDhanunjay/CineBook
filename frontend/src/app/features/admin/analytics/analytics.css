@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+
+/* Chart wrappers — fixed heights so Chart.js (responsive, no aspect ratio) fills them. */
+.chart-box {
+  @apply relative h-72 w-full;
+}
+.chart-box--sm {
+  @apply h-64;
+}
+
+/* Occupancy / fill-rate progress bar — same token language as the rest of the app. */
+.occ-track {
+  @apply h-2.5 w-full overflow-hidden rounded-full bg-ink-800;
+}
+.occ-fill {
+  @apply h-full rounded-full transition-all duration-500;
+}
+
+/* Audience-interest poster thumbnail (or placeholder) — matches table poster sizing. */
+.interest-poster {
+  @apply aspect-[2/3] h-14 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
+}
