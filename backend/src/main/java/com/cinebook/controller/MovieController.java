@@ -27,6 +27,7 @@ public class MovieController {
 
     @GetMapping
     public ResponseEntity<List<Movie>> list() {
+
         return ResponseEntity.ok(movieService.listMovies());
     }
 

@@ -24,6 +24,7 @@ public class MovieService {
 
     /** All movies that have not been soft-deleted. */
     public List<Movie> listMovies() {
+
         return movieRepository.findByDeletedFalse();
     }
 
