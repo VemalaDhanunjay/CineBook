@@ -1,6 +1,6 @@
 <aside id="app-sidebar" class="sidebar">
-  <p class="sidebar-heading">Menu</p>
-  <nav class="space-y-1">
+  <p id="sidebar-heading" class="sidebar-heading">Menu</p>
+  <nav id="sidebar-nav" class="space-y-1">
     @for (item of items(); track item.id) {
       <a
         [id]="item.id"

@@ -1,6 +1,5 @@
 package com.cinebook.controller;
 
-import com.cinebook.dto.BookingRequest;
 import com.cinebook.dto.CancelSeatsRequest;
 import com.cinebook.dto.RefundQuoteResponse;
 import com.cinebook.dto.SeatAvailabilityResponse;
@@ -8,8 +7,8 @@ import com.cinebook.dto.UserBookingResponse;
 import com.cinebook.security.AuthPrincipal;
 import com.cinebook.service.BookingService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/bookings")
+@PreAuthorize("hasRole('USER')")
 public class BookingController {
 
     private final BookingService bookingService;
@@ -46,13 +46,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getUserBooking(principal.userId(), id));
     }
 
-    @PostMapping
-    public ResponseEntity<UserBookingResponse> create(
-            @Valid @RequestBody BookingRequest request,
-            @AuthenticationPrincipal AuthPrincipal principal) {
-        UserBookingResponse created = bookingService.createBooking(principal.userId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
+    // Bookings are now created via the Stripe payment flow (POST /api/payments/checkout);
+    // the previous unauthenticated "instant book" endpoint has been retired.
 
     /** Cancel the entire booking (all remaining BOOKED seats). */
     @DeleteMapping("/me/{id}")

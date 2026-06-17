@@ -46,7 +46,7 @@
         <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
           Total Revenue
         </p>
-        <p class="text-2xl font-bold text-emerald-600">
+        <p id="analytics-revenue-value" class="text-2xl font-bold text-emerald-600">
           {{ totalRevenue() | currency: "INR" : "symbol-narrow" : "1.0-0" }}
         </p>
         <p class="mt-0.5 text-[0.7rem] text-gray-500">Net of refunds · last {{ timeRange() }} days</p>
@@ -59,7 +59,7 @@
       </span>
       <div class="min-w-0">
         <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">Seats Sold</p>
-        <p class="text-2xl font-bold text-gray-900">{{ seatsSold() }}</p>
+        <p id="analytics-seats-value" class="text-2xl font-bold text-gray-900">{{ seatsSold() }}</p>
         <p class="mt-0.5 text-[0.7rem] text-gray-500">Confirmed footfall in range</p>
       </div>
     </div>
@@ -72,7 +72,7 @@
         <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
           Upcoming Shows
         </p>
-        <p class="text-2xl font-bold text-gray-900">{{ upcomingShows() }}</p>
+        <p id="analytics-upcoming-value" class="text-2xl font-bold text-gray-900">{{ upcomingShows() }}</p>
         <p class="mt-0.5 text-[0.7rem] text-gray-500">Scheduled ahead of now</p>
       </div>
     </div>
@@ -85,7 +85,7 @@
         <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-gray-500">
           Cancellation Rate
         </p>
-        <p class="text-2xl font-bold text-gray-900">
+        <p id="analytics-cancel-value" class="text-2xl font-bold text-gray-900">
           {{ cancellationRate() | number: "1.0-1" }}%
         </p>
         <p class="mt-0.5 text-[0.7rem] text-gray-500">
@@ -137,6 +137,7 @@
       @if (dropdownOpen()) {
         <div id="an-filter-menu" class="filter-menu card" role="listbox">
           <button
+            id="analytics-filter-row-all"
             type="button"
             class="filter-menu-row"
             [class.is-active]="movieFilter() === 'ALL'"
@@ -156,6 +157,7 @@
 
           @for (option of movieOptions(); track option.id) {
             <button
+              [id]="'analytics-filter-row-' + option.id"
               type="button"
               class="filter-menu-row"
               [class.is-active]="movieFilter() === option.id"
@@ -179,7 +181,7 @@
           }
 
           @if (movieOptions().length === 0) {
-            <p class="px-4 py-6 text-center text-xs text-gray-500">
+            <p id="analytics-filter-empty" class="px-4 py-6 text-center text-xs text-gray-500">
               No shows scheduled yet — movies appear here once they are listed.
             </p>
           }
@@ -206,21 +208,21 @@
   <!-- 4 — Main ticket bookings chart -->
   <section id="an-bookings-chart" class="card mb-6 p-6">
     <div class="mb-4 flex items-center justify-between gap-3">
-      <h2 class="flex items-center gap-2 text-base font-bold">
+      <h2 id="analytics-bookings-title" class="flex items-center gap-2 text-base font-bold">
         <svg lucideTicket class="h-4 w-4 text-tomato-500"></svg>
         Ticket Bookings
       </h2>
       <span class="text-xs text-gray-500">{{ groupingLabel(grouping()) }} · last {{ timeRange() }} days</span>
     </div>
-    <div class="chart-box">
-      <canvas baseChart [type]="'bar'" [data]="bookingsChartData()" [options]="barOptions"></canvas>
+    <div id="analytics-bookings-chart-box" class="chart-box">
+      <canvas id="analytics-bookings-canvas" baseChart [type]="'bar'" [data]="bookingsChartData()" [options]="barOptions"></canvas>
     </div>
   </section>
 
   <!-- 5 — Show occupancy table -->
   <section id="an-occupancy" class="card mb-6 overflow-hidden">
     <header class="border-b border-ink-700 px-5 py-4">
-      <h2 class="flex items-center gap-2 text-base font-bold">
+      <h2 id="analytics-occupancy-title" class="flex items-center gap-2 text-base font-bold">
         <svg lucideArmchair class="h-4 w-4 text-tomato-500"></svg>
         Show Occupancy
       </h2>
@@ -229,7 +231,7 @@
       </p>
     </header>
     <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
+      <table id="analytics-occupancy-table" class="w-full text-left text-sm">
         <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
           <tr>
             <th class="px-5 py-3">Movie</th>
@@ -240,7 +242,7 @@
         </thead>
         <tbody>
           @for (row of occupancyRows(); track row.showId) {
-            <tr class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+            <tr [id]="'analytics-occupancy-row-' + row.showId" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
               <td class="px-5 py-3 font-medium text-gray-900">{{ row.title }}</td>
               <td class="px-5 py-3 text-gray-600">
                 {{ row.showTime | date: "MMM d, y · h:mm a" }}
@@ -257,14 +259,14 @@
                       [style.width.%]="barWidth(row.fillRate)"
                     ></div>
                   </div>
-                  <span class="w-12 text-right text-xs font-semibold" [class]="fillTextClass(row.fillRate)">
+                  <span [id]="'analytics-occupancy-fill-' + row.showId" class="w-12 text-right text-xs font-semibold" [class]="fillTextClass(row.fillRate)">
                     {{ row.fillRate | number: "1.0-0" }}%
                   </span>
                 </div>
               </td>
             </tr>
           } @empty {
-            <tr>
+            <tr id="analytics-occupancy-empty-row">
               <td colspan="4" class="px-5 py-10 text-center text-sm text-gray-500">
                 No upcoming shows for the current filter.
               </td>
@@ -280,15 +282,15 @@
     <!-- Left: wide top-performance table -->
     <div class="card overflow-hidden lg:col-span-2">
       <header class="border-b border-ink-700 px-5 py-4">
-        <h2 class="flex items-center gap-2 text-base font-bold">
+        <h2 id="analytics-top-performance-title" class="flex items-center gap-2 text-base font-bold">
           <svg lucideTrendingDown class="h-4 w-4 -scale-y-100 text-tomato-500"></svg>
           Top Performing Shows
         </h2>
         <p class="text-xs text-gray-500">Ranked by net revenue</p>
       </header>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
+      <div class="overflow-auto max-h-[15rem]">
+        <table id="analytics-top-performance-table" class="w-full text-left text-sm">
+          <thead class="sticky top-0 z-10 bg-ink-900 border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
             <tr>
               <th class="px-5 py-3">Movie</th>
               <th class="px-5 py-3">Theater</th>
@@ -301,7 +303,7 @@
           </thead>
           <tbody>
             @for (row of topPerformance(); track row.showId) {
-              <tr class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+              <tr [id]="'analytics-top-row-' + row.showId" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
                 <td class="px-5 py-3 font-medium text-gray-900">{{ row.title }}</td>
                 <td class="px-5 py-3 text-gray-600">{{ theaterName() }}</td>
                 <td class="px-5 py-3 text-gray-600">{{ row.language }}</td>
@@ -309,15 +311,15 @@
                 <td class="px-5 py-3 font-semibold text-gray-900">
                   {{ row.seatsBooked }} / {{ row.totalSeats }}
                 </td>
-                <td class="px-5 py-3 font-semibold" [class]="fillTextClass(row.fillRate)">
+                <td [id]="'analytics-top-fill-' + row.showId" class="px-5 py-3 font-semibold" [class]="fillTextClass(row.fillRate)">
                   {{ row.fillRate | number: "1.0-0" }}%
                 </td>
-                <td class="px-5 py-3 font-semibold text-emerald-600">
+                <td [id]="'analytics-top-revenue-' + row.showId" class="px-5 py-3 font-semibold text-emerald-600">
                   {{ row.revenue | currency: "INR" : "symbol-narrow" : "1.0-0" }}
                 </td>
               </tr>
             } @empty {
-              <tr>
+              <tr id="analytics-top-empty-row">
                 <td colspan="7" class="px-5 py-10 text-center text-sm text-gray-500">
                   No shows to rank for the current filter.
                 </td>
@@ -330,13 +332,14 @@
 
     <!-- Right: compact ratings chart -->
     <div class="card p-6">
-      <h2 class="mb-4 flex items-center gap-2 text-base font-bold">
+      <h2 id="analytics-top-rated-title" class="mb-4 flex items-center gap-2 text-base font-bold">
         <svg lucideStar class="h-4 w-4 text-amber-500"></svg>
         Top Rated Movies
       </h2>
       @if (topRatedChartData().labels?.length) {
-        <div class="chart-box chart-box--sm">
+        <div id="analytics-top-rated-chart-box" class="chart-box chart-box--sm">
           <canvas
+            id="analytics-top-rated-canvas"
             baseChart
             [type]="'bar'"
             [data]="topRatedChartData()"
@@ -344,21 +347,21 @@
           ></canvas>
         </div>
       } @else {
-        <p class="py-10 text-center text-sm text-gray-500">No ratings yet.</p>
+        <p id="analytics-top-rated-empty" class="py-10 text-center text-sm text-gray-500">No ratings yet.</p>
       }
     </div>
   </section>
 
   <!-- 7 — Audience interest footer -->
   <section id="an-interest" class="mb-2">
-    <h2 class="mb-3 flex items-center gap-2 text-base font-bold">
+    <h2 id="analytics-interest-title" class="mb-3 flex items-center gap-2 text-base font-bold">
       <svg lucideFilm class="h-4 w-4 text-tomato-500"></svg>
       Audience Interest
       <span class="text-xs font-normal text-gray-500">— movies people are waiting to see</span>
     </h2>
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       @for (movie of audienceInterest(); track movie.movieId) {
-        <div class="card flex items-center gap-3 p-3">
+        <div [id]="'analytics-interest-' + movie.movieId" class="card flex items-center gap-3 p-3">
           @if (movie.posterUrl) {
             <img [src]="movie.posterUrl" [alt]="movie.title" class="interest-poster" />
           } @else {
@@ -374,7 +377,7 @@
           </div>
         </div>
       } @empty {
-        <p class="col-span-full py-6 text-center text-sm text-gray-500">
+        <p id="analytics-interest-empty" class="col-span-full py-6 text-center text-sm text-gray-500">
           No audience interest recorded yet.
         </p>
       }

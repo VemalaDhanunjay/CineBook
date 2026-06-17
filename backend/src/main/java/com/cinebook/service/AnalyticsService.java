@@ -18,15 +18,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Read-only analytics for the admin dashboard. Theater-scoped — every figure is
- * derived only from movies the calling admin's theater actually screens, resolved
- * from that theater's shows. Mirrors {@link BookingService}: constructor injection,
- * a {@code requireTheater} guard, and batched lookups to avoid N+1 queries.
+ * Read-only analytics for the admin dashboard. Mostly theater-scoped — ratings and
+ * occupancy are derived only from movies the calling admin's theater actually screens,
+ * resolved from that theater's shows. Audience interest is the deliberate exception:
+ * it spans the whole catalogue to reveal demand for titles not yet scheduled. Mirrors
+ * {@link BookingService}: constructor injection, a {@code requireTheater} guard, and
+ * batched lookups to avoid N+1 queries.
  */
 @Service
 public class AnalyticsService {
@@ -63,17 +66,30 @@ public class AnalyticsService {
                 .toList();
     }
 
-    /** Waitlist (interest) count per movie shown at the theater, most-wanted first. */
+    /**
+     * Waitlist (interest) count per movie across the whole catalogue, most-wanted
+     * first. Unlike the other analytics, this is intentionally NOT limited to movies
+     * the theater already screens: its purpose is to reveal demand for movies the
+     * admin has not scheduled yet, so they know what to bring to their screens.
+     * Archived (soft-deleted) movies are excluded.
+     */
     @Transactional(readOnly = true)
     public List<MovieInterestResponse> movieInterest(Long theaterId) {
         requireTheater(theaterId);
-        Set<Long> movieIds = theaterMovieIds(theaterId);
-        if (movieIds.isEmpty()) {
+        List<MovieInterestAggregate> aggregates = movieInterestRepository.countAllByMovie();
+        if (aggregates.isEmpty()) {
             return Collections.emptyList();
         }
+        Set<Long> movieIds = aggregates.stream()
+                .map(MovieInterestAggregate::getMovieId)
+                .collect(Collectors.toSet());
         Map<Long, Movie> moviesById = moviesById(movieIds);
-        return movieInterestRepository.countByMovieIn(movieIds).stream()
-                .map(agg -> toInterest(agg, moviesById.get(agg.getMovieId())))
+        return aggregates.stream()
+                .map(agg -> {
+                    Movie movie = moviesById.get(agg.getMovieId());
+                    return movie == null || movie.isDeleted() ? null : toInterest(agg, movie);
+                })
+                .filter(Objects::nonNull)
                 .sorted(Comparator.comparingLong(
                         (MovieInterestResponse r) -> r.getWaitlistCount() == null ? 0L : r.getWaitlistCount())
                         .reversed())

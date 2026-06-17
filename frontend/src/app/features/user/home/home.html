@@ -1,8 +1,8 @@
-<div class="mx-auto max-w-3xl py-10 text-center">
+<div id="home-page" class="mx-auto max-w-3xl py-10 text-center">
   <span class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-tomato-500 text-white">
     <svg lucideFilm class="h-9 w-9"></svg>
   </span>
-  <h1 class="text-3xl font-extrabold sm:text-4xl">
+  <h1 id="home-title" class="text-3xl font-extrabold sm:text-4xl">
     Welcome to Cine<span class="text-tomato-500">Book</span>,
     {{ auth.currentUser()?.username }} 👋
   </h1>
@@ -12,18 +12,18 @@
     catalog, showtimes, seat picker and bookings land in the next build.
   </p>
 
-  <div class="mt-8 grid gap-4 sm:grid-cols-3">
-    <div class="card p-5 text-left">
+  <div id="home-features" class="mt-8 grid gap-4 sm:grid-cols-3">
+    <div id="home-feature-browse" class="card p-5 text-left">
       <svg lucideFilm class="mb-2 h-6 w-6 text-tomato-500"></svg>
       <h3 class="font-semibold">Browse movies</h3>
       <p class="mt-1 text-sm text-gray-500">Coming Day 2</p>
     </div>
-    <div class="card p-5 text-left">
+    <div id="home-feature-book" class="card p-5 text-left">
       <svg lucideTicket class="mb-2 h-6 w-6 text-tomato-500"></svg>
       <h3 class="font-semibold">Book seats</h3>
       <p class="mt-1 text-sm text-gray-500">Coming Day 3</p>
     </div>
-    <div class="card p-5 text-left">
+    <div id="home-feature-bookings" class="card p-5 text-left">
       <svg lucideUser class="mb-2 h-6 w-6 text-tomato-500"></svg>
       <h3 class="font-semibold">My bookings</h3>
       <p class="mt-1 text-sm text-gray-500">Coming Day 3</p>

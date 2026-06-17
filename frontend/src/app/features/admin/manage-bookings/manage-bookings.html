@@ -201,7 +201,7 @@
       <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
         Most Booked · {{ movie.totalSeatsBooked }} seats
       </span>
-      <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+      <h3 [id]="'manage-bookings-most-booked-title-' + movie.movieId" class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
         {{ movie.title }}
       </h3>
       <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
@@ -218,7 +218,7 @@
       class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 px-5 py-4"
     >
       <div>
-        <h2 class="flex items-center gap-2 text-base font-bold">
+        <h2 id="manage-bookings-ledger-title" class="flex items-center gap-2 text-base font-bold">
           <svg lucideFilm class="h-4 w-4 text-tomato-500"></svg>
           History Ledger
         </h2>
@@ -325,7 +325,7 @@
               </td>
 
               <td class="px-5 py-3">
-                <p class="font-semibold text-gray-900">
+                <p [id]="'manage-bookings-total-' + b.id" class="font-semibold text-gray-900">
                   {{ b.totalAmount | currency: "INR" : "symbol-narrow" : "1.2-2" }}
                 </p>
                 @if (hasRefund(b)) {
@@ -337,7 +337,7 @@
               </td>
 
               <td class="px-5 py-3">
-                <span [class]="statusClass(b.status)">{{ statusLabel(b.status) }}</span>
+                <span [id]="'manage-bookings-status-' + b.id" [class]="statusClass(b.status)">{{ statusLabel(b.status) }}</span>
               </td>
 
               <td class="px-5 py-3 font-mono text-xs text-gray-600">{{ b.bookingDate }}</td>

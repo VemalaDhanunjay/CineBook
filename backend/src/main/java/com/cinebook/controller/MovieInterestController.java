@@ -4,6 +4,7 @@ import com.cinebook.dto.MovieInterestStatusResponse;
 import com.cinebook.security.AuthPrincipal;
 import com.cinebook.service.MovieInterestService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/movies/{movieId}/interest")
+@PreAuthorize("hasRole('USER')")
 public class MovieInterestController {
 
     private final MovieInterestService interestService;

@@ -17,7 +17,7 @@
             <span class="chip chip-on-dark">{{ g }}</span>
           }
         </div>
-        <button type="button" class="btn-primary mt-4" (click)="bookMovie(movie)">
+        <button [id]="'movies-hero-book-' + movie.id" type="button" class="btn-primary mt-4" (click)="bookMovie(movie)">
           <svg lucideTicket class="h-4 w-4"></svg>
           Book Tickets
           <svg lucideArrowRight class="h-4 w-4"></svg>
@@ -29,7 +29,7 @@
   <!-- Section header + search + theater dropdown -->
   <header id="movies-header" class="mb-4 flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="flex items-center gap-2 text-xl font-bold text-gray-900">
+      <h1 id="movies-title" class="flex items-center gap-2 text-xl font-bold text-gray-900">
         <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
           <svg lucideFilm class="h-4 w-4"></svg>
         </span>
@@ -98,7 +98,7 @@
       @if (search()) {
         <span class="filter-pill">"{{ search() }}"</span>
       }
-      <button type="button" class="text-tomato-600 hover:text-tomato-500 font-semibold underline-offset-2 hover:underline" (click)="clearFilters()">
+      <button id="movies-clear-filters-btn" type="button" class="text-tomato-600 hover:text-tomato-500 font-semibold underline-offset-2 hover:underline" (click)="clearFilters()">
         Clear all
       </button>
     </div>
@@ -111,6 +111,7 @@
       Genre
     </span>
     <button
+      id="movies-genre-all"
       type="button"
       class="pill"
       [class.is-active]="selectedGenre() === 'ALL'"
@@ -120,6 +121,7 @@
     </button>
     @for (g of genres(); track g) {
       <button
+        [id]="'movies-genre-' + g"
         type="button"
         class="pill"
         [class.is-active]="selectedGenre() === g"
@@ -137,6 +139,7 @@
       Language
     </span>
     <button
+      id="movies-language-all"
       type="button"
       class="pill lang-pill"
       [class.is-active]="selectedLanguage() === 'ALL'"
@@ -146,6 +149,7 @@
     </button>
     @for (l of languages(); track l) {
       <button
+        [id]="'movies-language-' + l"
         type="button"
         class="pill lang-pill"
         [class.is-active]="selectedLanguage() === l"
@@ -168,6 +172,7 @@
           class="movie-card group card overflow-hidden text-left transition-shadow hover:shadow-lg"
         >
           <div
+            [id]="'movies-poster-' + movie.id"
             class="movie-card-poster"
             role="button"
             tabindex="0"
@@ -209,7 +214,7 @@
           </div>
 
           <div class="movie-card-body">
-            <h3 class="movie-card-title">{{ movie.title }}</h3>
+            <h3 [id]="'movies-card-title-' + movie.id" class="movie-card-title">{{ movie.title }}</h3>
             <p class="movie-card-meta">
               {{ toChips(movie.genre)[0] || movie.genre }}
               @if (movie.languages) {
@@ -269,10 +274,10 @@
   } @else {
     <div id="movies-empty" class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
       <svg lucideFilm class="h-10 w-10 text-gray-400"></svg>
-      <p class="text-sm font-medium text-gray-700">
+      <p id="movies-empty-message" class="text-sm font-medium text-gray-700">
         No movies match your filters.
       </p>
-      <button type="button" class="btn-ghost py-1.5 text-sm" (click)="clearFilters()">
+      <button id="movies-empty-clear-btn" type="button" class="btn-ghost py-1.5 text-sm" (click)="clearFilters()">
         Clear filters
       </button>
     </div>

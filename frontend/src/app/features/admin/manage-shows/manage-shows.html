@@ -2,7 +2,7 @@
   <!-- Feature 1 — Dashboard header -->
   <header id="ms-header" class="mb-6 flex items-end justify-between gap-4">
     <div>
-      <h1 class="flex items-center gap-2 text-xl font-bold sm:text-xl">
+      <h1 id="manage-shows-title" class="flex items-center gap-2 text-xl font-bold sm:text-xl">
         <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
           <svg lucideCalendarClock class="h-4 w-4"></svg>
         </span>
@@ -253,7 +253,7 @@
   <section class="card mt-8 overflow-hidden">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 px-5 py-4">
       <div class="flex items-center gap-3">
-        <h2 class="font-bold">
+        <h2 id="manage-shows-table-heading" class="font-bold">
           
           {{
               filter() === 'upcoming'
@@ -323,7 +323,7 @@
                     <div class="flex items-center gap-3">
                       <img [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
                       <div>
-                        <p class="font-medium text-gray-900">{{ movie.title }}</p>
+                        <p [id]="'manage-shows-row-title-' + show.id" class="font-medium text-gray-900">{{ movie.title }}</p>
                         <div class="mt-0.5 flex flex-wrap gap-1">
                           @for (g of toChips(movie.genre); track g) {
                             <span class="chip">{{ g }}</span>
@@ -347,9 +347,9 @@
                 </td>
                 <td class="px-5 py-3">
                   @if (isUpcoming(show)) {
-                    <span class="status-badge status-open">Open</span>
+                    <span [id]="'manage-shows-row-status-' + show.id" class="status-badge status-open">Open</span>
                   } @else {
-                    <span class="status-badge status-closed">Closed</span>
+                    <span [id]="'manage-shows-row-status-' + show.id" class="status-badge status-closed">Closed</span>
                   }
                 </td>
                 <td class="px-5 py-3">
@@ -395,8 +395,8 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       (click)="cancelDelete()"
     >
-      <div class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
-        <h3 class="text-lg font-bold">
+      <div id="manage-shows-delete-dialog" class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
+        <h3 id="manage-shows-delete-title" class="text-lg font-bold">
           Delete this show of "{{ movieFor(target)?.title ?? 'Movie #' + target.movieId }}"?
         </h3>
         <p class="mt-2 text-sm text-gray-600">

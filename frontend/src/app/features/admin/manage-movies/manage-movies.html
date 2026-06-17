@@ -2,7 +2,7 @@
   <!-- Feature 1 — Dashboard header -->
   <header id="mm-header" class="mb-6 flex items-end justify-between gap-4">
     <div>
-      <h1 class="flex items-center gap-2 text-xl font-bold sm:text-xl">
+      <h1 id="manage-movies-title" class="flex items-center gap-2 text-xl font-bold sm:text-xl">
         <span class="grid h-8 w-8 place-items-center rounded-lg bg-tomato-500 text-white">
           <svg lucideClapperboard class="h-4 w-4"></svg>
         </span>
@@ -271,7 +271,7 @@
 
     <!-- Right: live preview -->
     <section class="card p-6">
-      <h2 class="mb-5 text-lg font-bold">Live preview</h2>
+      <h2 id="manage-movies-preview-heading" class="mb-5 text-lg font-bold">Live preview</h2>
       <div id="mm-preview" class="overflow-hidden rounded-xl border border-ink-700">
         <div class="flex justify-center p-4">
           @if (form.posterUrl) {
@@ -326,7 +326,7 @@
   <!-- Feature 4 — Existing movies ledger -->
   <section class="card mt-8 overflow-hidden">
     <div class="flex items-center justify-between border-b border-ink-700 px-5 py-4">
-      <h2 class="font-bold">Existing movies</h2>
+      <h2 id="manage-movies-table-heading" class="font-bold">Existing movies</h2>
       <span id="mm-table-count" class="rounded-full bg-ink-800 px-2.5 py-0.5 text-sm font-semibold text-gray-600">
         {{ count() }} total
       </span>
@@ -351,9 +351,9 @@
               <tr [id]="'mm-row-' + movie.id" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
                 <td class="px-5 py-3 text-gray-500">#{{ movie.id }}</td>
                 <td class="px-5 py-3">
-                  <img [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
+                  <img [id]="'manage-movies-row-poster-' + movie.id" [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
                 </td>
-                <td class="px-5 py-3 font-medium text-gray-900">{{ movie.title }}</td>
+                <td [id]="'manage-movies-row-title-' + movie.id" class="px-5 py-3 font-medium text-gray-900">{{ movie.title }}</td>
                 <td class="px-5 py-3">
                   <div class="flex flex-wrap gap-1">
                     @for (g of toChips(movie.genre); track g) {
@@ -361,8 +361,8 @@
                     }
                   </div>
                 </td>
-                <td class="px-5 py-3 whitespace-nowrap text-gray-600">{{ movie.durationMins }} min</td>
-                <td class="px-5 py-3 whitespace-nowrap text-gray-600">
+                <td [id]="'manage-movies-row-duration-' + movie.id" class="px-5 py-3 whitespace-nowrap text-gray-600">{{ movie.durationMins }} min</td>
+                <td [id]="'manage-movies-row-price-' + movie.id" class="px-5 py-3 whitespace-nowrap text-gray-600">
                   {{ movie.price | currency: "INR" }}
                 </td>
                 <td class="px-5 py-3">
@@ -405,8 +405,8 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       (click)="cancelDelete()"
     >
-      <div class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
-        <h3 class="text-lg font-bold">Delete "{{ target.title }}"?</h3>
+      <div id="manage-movies-delete-dialog" class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
+        <h3 id="manage-movies-delete-title" class="text-lg font-bold">Delete "{{ target.title }}"?</h3>
         <p class="mt-2 text-sm text-gray-600">
           The movie and its shows will be archived (hidden from the catalog). Past bookings and
           ticket history are preserved.

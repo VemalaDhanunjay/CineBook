@@ -1,5 +1,5 @@
-<div class="flex min-h-[calc(100vh-8rem)] items-center justify-center">
-  <div class="auth-card grid w-full max-w-4xl overflow-hidden rounded-3xl border border-ink-700 bg-ink-900 shadow-2xl lg:grid-cols-2">
+<div id="register-page" class="flex min-h-[calc(100vh-8rem)] items-center justify-center">
+  <div id="register-card" class="auth-card grid w-full max-w-4xl overflow-hidden rounded-3xl border border-ink-700 bg-ink-900 shadow-2xl lg:grid-cols-2">
     <!-- ===== Brand / showcase panel ===== -->
     <aside class="hero relative hidden flex-col justify-between overflow-hidden p-10 text-white lg:flex">
       <div class="relative z-10 flex items-center gap-2 text-2xl font-extrabold">
@@ -58,17 +58,17 @@
         </span>
       </div>
 
-      <h1 class="text-2xl font-extrabold tracking-tight">Create your account</h1>
+      <h1 id="register-title" class="text-2xl font-extrabold tracking-tight">Create your account</h1>
       <p class="mt-1 text-sm text-gray-500">Join CineBook in seconds</p>
 
       <!-- Animated role selector -->
-      <div class="role-toggle" [class.is-admin]="mode() === 'admin'">
+      <div id="register-role-toggle" class="role-toggle" [class.is-admin]="mode() === 'admin'">
         <span class="role-thumb"></span>
-        <button type="button" class="role-option" (click)="setMode('user')">
+        <button id="register-role-user-btn" type="button" class="role-option" (click)="setMode('user')">
           <svg lucideUser class="h-4 w-4"></svg>
           Moviegoer
         </button>
-        <button type="button" class="role-option" (click)="setMode('admin')">
+        <button id="register-role-admin-btn" type="button" class="role-option" (click)="setMode('admin')">
           <svg lucideClapperboard class="h-4 w-4"></svg>
           Theater Owner
         </button>
@@ -76,13 +76,14 @@
 
       @if (error()) {
         <div
+          id="register-error"
           class="mt-5 flex items-center gap-2 rounded-lg border border-tomato-600/30 bg-tomato-500/10 px-3 py-2.5 text-sm text-tomato-600"
         >
           {{ error() }}
         </div>
       }
 
-      <form (ngSubmit)="submit()" class="mt-5 space-y-4">
+      <form id="register-form" (ngSubmit)="submit()" class="mt-5 space-y-4">
         <div>
           <label class="mb-1.5 block text-sm font-medium text-gray-700">Username</label>
           <div class="relative">
@@ -91,6 +92,7 @@
               class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
             ></svg>
             <input
+              id="register-username-input"
               class="input pl-10"
               name="username"
               [(ngModel)]="username"
@@ -109,6 +111,7 @@
               class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
             ></svg>
             <input
+              id="register-password-input"
               class="input px-10"
               [type]="showPassword() ? 'text' : 'password'"
               name="password"
@@ -118,6 +121,7 @@
               placeholder="Create a password"
             />
             <button
+              id="register-toggle-password-btn"
               type="button"
               class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 transition-colors hover:text-tomato-500"
               (click)="togglePassword()"
@@ -133,7 +137,7 @@
         </div>
 
         @if (mode() === 'admin') {
-          <div class="reveal space-y-4 rounded-xl border border-dashed border-ink-600 bg-ink-800/60 p-4">
+          <div id="register-theater-panel" class="reveal space-y-4 rounded-xl border border-dashed border-ink-600 bg-ink-800/60 p-4">
             <div>
               <label class="mb-1.5 block text-sm font-medium text-gray-700">Theater name</label>
               <div class="relative">
@@ -141,7 +145,7 @@
                   lucideBuilding
                   class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                 ></svg>
-                <input class="input pl-10" name="theaterName" [(ngModel)]="theaterName" required placeholder="e.g. PVR Cinemas" />
+                <input id="register-theater-name-input" class="input pl-10" name="theaterName" [(ngModel)]="theaterName" required placeholder="e.g. PVR Cinemas" />
               </div>
             </div>
             <div>
@@ -151,13 +155,13 @@
                   lucideMapPin
                   class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                 ></svg>
-                <input class="input pl-10" name="theaterLocation" [(ngModel)]="theaterLocation" placeholder="e.g. Hyderabad" />
+                <input id="register-theater-location-input" class="input pl-10" name="theaterLocation" [(ngModel)]="theaterLocation" placeholder="e.g. Hyderabad" />
               </div>
             </div>
           </div>
         }
 
-        <button type="submit" class="btn-primary w-full" [disabled]="loading()">
+        <button id="register-submit-btn" type="submit" class="btn-primary w-full" [disabled]="loading()">
           @if (loading()) {
             <svg lucideLoader class="h-4 w-4 animate-spin"></svg> Creating…
           } @else {
@@ -168,7 +172,7 @@
 
       <p class="mt-6 text-center text-sm text-gray-500">
         Already have an account?
-        <a routerLink="/login" class="font-semibold text-tomato-600 hover:underline">Sign in</a>
+        <a id="register-login-link" routerLink="/login" class="font-semibold text-tomato-600 hover:underline">Sign in</a>
       </p>
     </section>
   </div>

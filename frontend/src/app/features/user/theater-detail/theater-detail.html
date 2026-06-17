@@ -1,16 +1,16 @@
 <div id="theater-detail-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
-  <button type="button" class="btn-ghost mb-4 py-1.5 text-sm" (click)="goBack()">
+  <button id="theater-detail-back-btn" type="button" class="btn-ghost mb-4 py-1.5 text-sm" (click)="goBack()">
     <svg lucideArrowLeft class="h-4 w-4"></svg>
     Back to theaters
   </button>
 
   @if (theater(); as t) {
-    <header class="mb-6 flex items-start gap-3">
+    <header id="theater-detail-header" class="mb-6 flex items-start gap-3">
       <span class="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-tomato-500 text-white">
         <svg lucideStore class="h-5 w-5"></svg>
       </span>
       <div>
-        <h1 class="text-xl font-bold text-gray-900">{{ t.name }}</h1>
+        <h1 id="theater-detail-title" class="text-xl font-bold text-gray-900">{{ t.name }}</h1>
         <p class="mt-1 inline-flex items-center gap-1 text-sm font-medium text-gray-600">
           <svg lucideMapPin class="h-4 w-4"></svg>
           {{ t.location || "Location TBD" }}
@@ -20,13 +20,13 @@
   }
 
   @if (loading()) {
-    <div class="card flex items-center justify-center px-6 py-12">
+    <div id="theater-detail-loading" class="card flex items-center justify-center px-6 py-12">
       <p class="text-sm font-medium text-gray-500">Loading showtimes…</p>
     </div>
   } @else if (groups().length) {
-    <section class="grid gap-4">
+    <section id="theater-detail-groups" class="grid gap-4">
       @for (group of groups(); track group.movieId) {
-        <article class="card flex flex-wrap items-start gap-4 p-4">
+        <article [id]="'theater-detail-group-' + group.movieId" class="card flex flex-wrap items-start gap-4 p-4">
           @if (group.movie?.posterUrl) {
             <img
               [src]="group.movie!.posterUrl"
@@ -42,7 +42,7 @@
           }
 
           <div class="min-w-0 flex-1">
-            <h2 class="text-base font-bold text-gray-900">
+            <h2 [id]="'theater-detail-movie-title-' + group.movieId" class="text-base font-bold text-gray-900">
               {{ group.movie?.title ?? "Movie #" + group.movieId }}
             </h2>
             @if (group.movie?.genre) {

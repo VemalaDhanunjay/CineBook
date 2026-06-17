@@ -61,6 +61,7 @@ public class BookingService {
     private final TheaterRepository theaterRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final StripeGateway stripeGateway;
 
     public BookingService(BookingRepository bookingRepository,
                           BookingSeatRepository bookingSeatRepository,
@@ -68,7 +69,8 @@ public class BookingService {
                           MovieRepository movieRepository,
                           TheaterRepository theaterRepository,
                           UserRepository userRepository,
-                          ReviewRepository reviewRepository) {
+                          ReviewRepository reviewRepository,
+                          StripeGateway stripeGateway) {
         this.bookingRepository = bookingRepository;
         this.bookingSeatRepository = bookingSeatRepository;
         this.showRepository = showRepository;
@@ -76,6 +78,12 @@ public class BookingService {
         this.theaterRepository = theaterRepository;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
+        this.stripeGateway = stripeGateway;
+    }
+
+    /** Ticket money (BigDecimal, 2dp) to the smallest currency unit (paise) for Stripe. */
+    static long toMinorUnits(BigDecimal amount) {
+        return amount.movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
     }
 
     /** All bookings for the admin's own theater, enriched with movie + show + user context. */
@@ -83,7 +91,9 @@ public class BookingService {
     public List<AdminBookingResponse> listForTheater(Long theaterId) {
         requireTheater(theaterId);
 
-        List<Booking> bookings = bookingRepository.findAllByTheaterId(theaterId);
+        List<Booking> bookings = bookingRepository.findAllByTheaterId(theaterId).stream()
+                .filter(b -> b.getStatus() != BookingStatus.PENDING_PAYMENT)
+                .toList();
         if (bookings.isEmpty()) {
             return List.of();
         }
@@ -186,7 +196,10 @@ public class BookingService {
     /** Current user's bookings, newest first, with movie + show + theater context. */
     @Transactional(readOnly = true)
     public List<UserBookingResponse> listForUser(Long userId) {
-        List<Booking> bookings = bookingRepository.findByUserIdOrderByBookingDateDesc(userId);
+        // Pending (unpaid) holds are internal — never surface them as real bookings.
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByBookingDateDesc(userId).stream()
+                .filter(b -> b.getStatus() != BookingStatus.PENDING_PAYMENT)
+                .toList();
         if (bookings.isEmpty()) {
             return List.of();
         }
@@ -223,8 +236,16 @@ public class BookingService {
      * already BOOKED, computes totals (18% GST), persists the Booking and
      * per-seat BookingSeat rows, decrements the show's availableSeats counter.
      */
+    /**
+     * Reserve seats for an in-flight payment: validate + price the request, then persist a
+     * {@code PENDING_PAYMENT} booking with per-seat rows marked {@code BOOKED} (so the seats
+     * are held against other buyers) and decrement the show's availability. The hold is later
+     * finalized to {@code CONFIRMED} by {@link #finalizePending} once Stripe confirms payment,
+     * or freed by {@link #releasePending} on cancel/expiry. Returns the saved entity so the
+     * caller can attach the Stripe session id.
+     */
     @Transactional
-    public UserBookingResponse createBooking(Long userId, BookingRequest request) {
+    public Booking holdSeats(Long userId, BookingRequest request) {
         Show show = showRepository.findById(request.getShowId())
                 .filter(s -> !s.isDeleted())
                 .orElseThrow(() -> ApiException.notFound("Show not found"));
@@ -245,7 +266,7 @@ public class BookingService {
             throw ApiException.badRequest("Only " + show.getAvailableSeats() + " seats remain");
         }
 
-        // Conflict check against existing BOOKED rows for this show.
+        // Conflict check against existing BOOKED rows for this show (incl. other pending holds).
         Set<String> alreadyBooked = bookingSeatRepository
                 .findByShowIdAndStatus(show.getId(), SeatStatus.BOOKED)
                 .stream()
@@ -272,7 +293,7 @@ public class BookingService {
         booking.setTaxAmount(tax);
         booking.setTotalAmount(total);
         booking.setRefundAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setStatus(BookingStatus.PENDING_PAYMENT);
         booking.setBookingDate(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
 
@@ -290,7 +311,43 @@ public class BookingService {
             showRepository.save(show);
         }
 
-        return enrich(List.of(saved)).get(0);
+        return saved;
+    }
+
+    /** PENDING_PAYMENT -> CONFIRMED after a successful Stripe charge. Idempotent. */
+    @Transactional
+    public UserBookingResponse finalizePending(Long bookingId, String paymentIntentId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> ApiException.notFound("Booking not found"));
+        if (booking.getStatus() == BookingStatus.PENDING_PAYMENT) {
+            booking.setStatus(BookingStatus.CONFIRMED);
+            booking.setStripePaymentIntentId(paymentIntentId);
+            booking.setPaidAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+        }
+        return enrich(List.of(booking)).get(0);
+    }
+
+    /** Release an unpaid hold: return its seats to the show's pool and delete it. Idempotent. */
+    @Transactional
+    public void releasePending(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null || booking.getStatus() != BookingStatus.PENDING_PAYMENT) {
+            return;
+        }
+        List<BookingSeat> seats = bookingSeatRepository.findByBookingId(bookingId);
+        int releaseCount = (int) seats.stream()
+                .filter(s -> s.getStatus() == SeatStatus.BOOKED).count();
+        bookingSeatRepository.deleteAll(seats);
+        bookingRepository.delete(booking);
+        if (releaseCount > 0) {
+            showRepository.findById(booking.getShowId()).ifPresent(show -> {
+                int avail = show.getAvailableSeats() == null ? 0 : show.getAvailableSeats();
+                int cap = show.getTotalSeats() == null ? avail + releaseCount : show.getTotalSeats();
+                show.setAvailableSeats(Math.min(avail + releaseCount, cap));
+                showRepository.save(show);
+            });
+        }
     }
 
     /** Cancel every still-BOOKED seat on a booking, refunding their summed price. */
@@ -361,6 +418,13 @@ public class BookingService {
         BigDecimal refundWithTax = grossRefund
                 .multiply(BigDecimal.valueOf(refundPercent))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        // Issue the real Stripe refund for paid bookings. If Stripe fails, the @Transactional
+        // cancel rolls back so seats are never cancelled without the money being returned.
+        if (refundWithTax.signum() > 0 && booking.getStripePaymentIntentId() != null) {
+            stripeGateway.refund(booking.getStripePaymentIntentId(), toMinorUnits(refundWithTax));
+        }
+
         BigDecimal currentRefund = booking.getRefundAmount() == null
                 ? BigDecimal.ZERO : booking.getRefundAmount();
         booking.setRefundAmount(currentRefund.add(refundWithTax).setScale(2, RoundingMode.HALF_UP));

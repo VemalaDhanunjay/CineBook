@@ -1,8 +1,8 @@
 @if (items().length) {
-  <section class="card relative mb-8 overflow-hidden">
-    <div class="carousel-track">
+  <section id="carousel-root" class="card relative mb-8 overflow-hidden">
+    <div id="carousel-track" class="carousel-track">
       @for (item of items(); track item; let i = $index) {
-        <div class="carousel-slide" [class.is-active]="i === safeIndex()">
+        <div [id]="'carousel-slide-' + i" class="carousel-slide" [class.is-active]="i === safeIndex()">
           <img [src]="item.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
           <div class="carousel-overlay"></div>
           <div class="carousel-inner">
@@ -18,9 +18,10 @@
     </div>
 
     @if (items().length > 1) {
-      <div class="carousel-dots">
+      <div id="carousel-dots" class="carousel-dots">
         @for (item of items(); track item; let i = $index) {
           <button
+            [id]="'carousel-dot-' + i"
             type="button"
             class="carousel-dot"
             [class.is-active]="i === safeIndex()"

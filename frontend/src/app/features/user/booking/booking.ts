@@ -16,6 +16,7 @@ import { switchMap, tap } from "rxjs";
 import { Movie, MovieInterestStatus, PublicShow } from "../../../core/models/catalog.model";
 import { MovieInterestService } from "../../../core/services/movie-interest.service";
 import { MovieService } from "../../../core/services/movie.service";
+import { PaymentService } from "../../../core/services/payment.service";
 import { ShowService } from "../../../core/services/show.service";
 import { UserBookingService } from "../../../core/services/user-booking.service";
 import { TrailerModalComponent } from "../../../shared/trailer-modal/trailer-modal";
@@ -53,6 +54,7 @@ export class BookingComponent implements OnInit {
   private readonly movieService = inject(MovieService);
   private readonly showService = inject(ShowService);
   private readonly bookingService = inject(UserBookingService);
+  private readonly paymentService = inject(PaymentService);
   private readonly interestService = inject(MovieInterestService);
 
   private static readonly TAX_RATE = 0.18;
@@ -229,13 +231,16 @@ export class BookingComponent implements OnInit {
     }
     this.submitting.set(true);
     this.error.set(null);
-    this.bookingService
-      .create({ showId: show.id, seatLabels: this.selectedSeats() })
+    // Hold the seats + open Stripe Checkout, then hand off to the hosted payment page.
+    this.paymentService
+      .startCheckout({ showId: show.id, seatLabels: this.selectedSeats() })
       .subscribe({
-        next: () => this.router.navigate(["/my-bookings"]),
+        next: (res) => {
+          window.location.href = res.checkoutUrl;
+        },
         error: (err) => {
           this.submitting.set(false);
-          this.error.set(err?.error?.message ?? "Could not complete the booking.");
+          this.error.set(err?.error?.message ?? "Could not start payment. Try again.");
         }
       });
   }

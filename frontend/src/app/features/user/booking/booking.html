@@ -1,5 +1,6 @@
 <div id="booking-page" class="mx-auto max-w-7xl px-4 pt-2 pb-2">
   <button
+    id="booking-back-btn"
     type="button"
     class="btn-ghost mb-4 py-1.5 text-sm"
     (click)="selectedShow() ? resetShow() : goBack()"
@@ -9,13 +10,13 @@
   </button>
 
   @if (movie(); as m) {
-    <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <header id="booking-movie-header" class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div class="flex flex-wrap items-end gap-4">
         @if (m.posterUrl) {
-          <img [src]="m.posterUrl" [alt]="m.title" class="h-28 w-20 rounded-lg object-cover shadow-sm" />
+          <img id="booking-movie-poster" [src]="m.posterUrl" [alt]="m.title" class="h-28 w-20 rounded-lg object-cover shadow-sm" />
         }
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">{{ m.title }}</h1>
+          <h1 id="booking-movie-title" class="text-2xl font-bold text-gray-900">{{ m.title }}</h1>
           <p class="mt-1 text-sm font-medium text-gray-600">
             {{ m.genre }} <span class="opacity-60">&bull;</span> {{ m.durationMins }} min
             <span class="opacity-60">&bull;</span> {{ m.languages }}
@@ -59,16 +60,16 @@
   }
 
   @if (error(); as err) {
-    <div class="card mb-4 border-tomato-500/40 bg-tomato-500/5 px-4 py-3 text-sm font-medium text-tomato-600">
+    <div id="booking-error" class="card mb-4 border-tomato-500/40 bg-tomato-500/5 px-4 py-3 text-sm font-medium text-tomato-600">
       {{ err }}
     </div>
   }
 
   @if (!selectedShow()) {
     <!-- Step 1: pick a show -->
-    <h2 class="mb-3 text-lg font-bold text-gray-900">Choose a showtime</h2>
+    <h2 id="booking-shows-heading" class="mb-3 text-lg font-bold text-gray-900">Choose a showtime</h2>
     @if (shows().length) {
-      <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section id="booking-show-list" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         @for (show of shows(); track show.id) {
           <button
             [id]="'show-' + show.id"
@@ -100,9 +101,9 @@
         }
       </section>
     } @else {
-      <div class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <div id="booking-shows-empty" class="card flex flex-col items-center gap-3 px-6 py-12 text-center">
         <svg lucideClock class="h-10 w-10 text-gray-400"></svg>
-        <p class="text-sm font-medium text-gray-700">
+        <p id="booking-shows-empty-msg" class="text-sm font-medium text-gray-700">
           No upcoming shows for this movie yet.
         </p>
         @if (interest(); as status) {
@@ -118,9 +119,9 @@
   } @else {
     <!-- Step 2: seat picker -->
     @if (selectedShow(); as show) {
-      <header class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <header id="booking-seats-header" class="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold text-gray-900">Pick your seats</h2>
+          <h2 id="booking-seats-heading" class="text-lg font-bold text-gray-900">Pick your seats</h2>
           <p class="mt-1 text-xs font-medium text-gray-600">
             {{ show.theaterName }} <span class="opacity-60">&bull;</span>
             {{ show.showTime | date: "EEE, MMM d • h:mm a" }}
@@ -134,11 +135,11 @@
         </div>
       </header>
 
-      <section class="card mb-4 px-4 py-6">
+      <section id="booking-seats-card" class="card mb-4 px-4 py-6">
         <div class="screen mb-6">SCREEN</div>
-        <div class="seat-grid">
+        <div id="booking-seat-grid" class="seat-grid">
           @for (row of rows(); track row.label) {
-            <div class="seat-row">
+            <div [id]="'booking-row-' + row.label" class="seat-row">
               <span class="seat-row-label">{{ row.label }}</span>
               <div class="flex flex-wrap items-center justify-center gap-1.5">
                 @for (seat of row.seats; track seat.label) {
@@ -163,21 +164,21 @@
       </section>
 
       <!-- Step 3: confirm -->
-      <section class="card flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+      <section id="booking-summary" class="card flex flex-wrap items-center justify-between gap-3 px-4 py-4">
         <div class="text-sm">
-          <p class="font-medium text-gray-700">
+          <p id="booking-seat-count" class="font-medium text-gray-700">
             <span class="font-bold text-gray-900">{{ selectedSeats().length }}</span>
             seat{{ selectedSeats().length === 1 ? "" : "s" }} selected
             @if (selectedSeats().length) {
               <span class="ml-2 text-xs text-gray-500">({{ selectedSeats().join(", ") }})</span>
             }
           </p>
-          <p class="mt-1 text-xs text-gray-500">
+          <p id="booking-price-breakdown" class="mt-1 text-xs text-gray-500">
             Subtotal {{ subtotal() | currency: "INR" }} + GST {{ tax() | currency: "INR" }}
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <p class="text-right text-lg font-bold text-tomato-600">
+          <p id="booking-total" class="text-right text-lg font-bold text-tomato-600">
             {{ total() | currency: "INR" }}
           </p>
           <button
@@ -188,7 +189,7 @@
             [disabled]="submitting() || selectedSeats().length === 0"
           >
             <svg lucideTicket class="h-4 w-4"></svg>
-            {{ submitting() ? "Booking..." : "Confirm Booking" }}
+            {{ submitting() ? "Redirecting to payment..." : "Proceed to Payment" }}
             <svg lucideArrowRight class="h-4 w-4"></svg>
           </button>
         </div>

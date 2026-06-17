@@ -48,6 +48,19 @@ public class Booking {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
+    // ── Stripe payment linkage ───────────────────────────────────────────────
+    /** Stripe Checkout Session id — set when the hold is created, used to finalize. */
+    @Column(name = "stripe_session_id", length = 255)
+    private String stripeSessionId;
+
+    /** Stripe PaymentIntent id of the successful charge — used to issue refunds. */
+    @Column(name = "stripe_payment_intent_id", length = 255)
+    private String stripePaymentIntentId;
+
+    /** When the payment succeeded and the booking was finalized to CONFIRMED. */
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -83,4 +96,13 @@ public class Booking {
 
     public LocalDateTime getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
+
+    public String getStripeSessionId() { return stripeSessionId; }
+    public void setStripeSessionId(String stripeSessionId) { this.stripeSessionId = stripeSessionId; }
+
+    public String getStripePaymentIntentId() { return stripePaymentIntentId; }
+    public void setStripePaymentIntentId(String stripePaymentIntentId) { this.stripePaymentIntentId = stripePaymentIntentId; }
+
+    public LocalDateTime getPaidAt() { return paidAt; }
+    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
 }
