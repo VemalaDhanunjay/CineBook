@@ -305,7 +305,7 @@
         <table id="ms-table" class="w-full text-left text-sm">
           <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
             <tr>
-              <th class="px-5 py-3">ID</th>
+              <!-- <th class="px-5 py-3">ID</th> -->
               <th class="px-5 py-3">Movie</th>
               <th class="px-5 py-3">Showtime</th>
               <th class="px-5 py-3">Price</th>
@@ -317,7 +317,7 @@
           <tbody>
             @for (show of filteredShows(); track show.id) {
               <tr [id]="'ms-row-' + show.id" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
-                <td class="px-5 py-3 text-gray-500">#{{ show.id }}</td>
+                <!-- <td class="px-5 py-3 text-gray-500">#{{ show.id }}</td> -->
                 <td class="px-5 py-3">
                   @if (movieFor(show); as movie) {
                     <div class="flex items-center gap-3">
@@ -344,6 +344,9 @@
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap text-gray-600">
                   {{ show.availableSeats }} / {{ show.totalSeats }}
+                  @if (hasActiveBookings(show)) {
+                    <span class="mt-1 block text-xs font-medium text-amber-600">Active bookings</span>
+                  }
                 </td>
                 <td class="px-5 py-3">
                   @if (isUpcoming(show)) {
@@ -369,6 +372,10 @@
                       [id]="'ms-delete-' + show.id"
                       type="button"
                       class="btn-ghost px-3 py-1.5 text-sm text-tomato-600 hover:bg-tomato-500/10"
+                      [class.cursor-not-allowed]="hasActiveBookings(show)"
+                      [class.opacity-50]="hasActiveBookings(show)"
+                      [disabled]="hasActiveBookings(show)"
+                      [attr.title]="hasActiveBookings(show) ? 'Shows with active bookings cannot be deleted' : 'Delete show'"
                       (click)="askDelete(show)"
                     >
                       <svg lucideTrash2 class="h-3.5 w-3.5"></svg> Delete

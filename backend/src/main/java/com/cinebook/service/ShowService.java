@@ -2,9 +2,11 @@ package com.cinebook.service;
 
 import com.cinebook.dto.PublicShowResponse;
 import com.cinebook.dto.ShowRequest;
+import com.cinebook.entity.BookingStatus;
 import com.cinebook.entity.Show;
 import com.cinebook.entity.Theater;
 import com.cinebook.exception.ApiException;
+import com.cinebook.repository.BookingRepository;
 import com.cinebook.repository.MovieRepository;
 import com.cinebook.repository.ShowRepository;
 import com.cinebook.repository.TheaterRepository;
@@ -29,16 +31,25 @@ import java.util.stream.Collectors;
 @Service
 public class ShowService {
 
+    private static final List<BookingStatus> ACTIVE_BOOKING_STATUSES = List.of(
+            BookingStatus.PENDING_PAYMENT,
+            BookingStatus.CONFIRMED,
+            BookingStatus.PARTIALLY_CANCELLED
+    );
+
     private final ShowRepository showRepository;
     private final MovieRepository movieRepository;
     private final TheaterRepository theaterRepository;
+    private final BookingRepository bookingRepository;
 
     public ShowService(ShowRepository showRepository,
                        MovieRepository movieRepository,
-                       TheaterRepository theaterRepository) {
+                       TheaterRepository theaterRepository,
+                       BookingRepository bookingRepository) {
         this.showRepository = showRepository;
         this.movieRepository = movieRepository;
         this.theaterRepository = theaterRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     /** All non-deleted shows for a single theater (the admin's own theater). */
@@ -145,6 +156,9 @@ public class ShowService {
     public void deleteShow(Long id, Long theaterId) {
         Show show = getShow(id);
         requireOwnership(show, theaterId);
+        if (bookingRepository.existsByShowIdAndStatusIn(show.getId(), ACTIVE_BOOKING_STATUSES)) {
+            throw ApiException.conflict("Cannot delete this show because it has active bookings");
+        }
         show.setDeleted(true);
         showRepository.save(show);
     }

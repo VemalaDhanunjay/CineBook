@@ -7,12 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserIdOrderByBookingDateDesc(Long userId);
     List<Booking> findByShowId(Long showId);
+    boolean existsByShowIdAndStatusIn(Long showId, Collection<BookingStatus> statuses);
 
     /** Locate a booking by its Stripe Checkout Session id — drives idempotent finalize/release. */
     Optional<Booking> findByStripeSessionId(String stripeSessionId);

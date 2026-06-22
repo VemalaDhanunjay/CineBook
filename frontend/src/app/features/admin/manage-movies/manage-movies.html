@@ -337,7 +337,7 @@
         <table id="mm-table" class="w-full text-left text-sm">
           <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
             <tr>
-              <th class="px-5 py-3">ID</th>
+              <!-- <th class="px-5 py-3">ID</th> -->
               <th class="px-5 py-3">Poster</th>
               <th class="px-5 py-3">Title</th>
               <th class="px-5 py-3">Genre</th>
@@ -349,7 +349,7 @@
           <tbody>
             @for (movie of movies(); track movie.id) {
               <tr [id]="'mm-row-' + movie.id" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
-                <td class="px-5 py-3 text-gray-500">#{{ movie.id }}</td>
+                <!-- <td class="px-5 py-3 text-gray-500">#{{ movie.id }}</td> -->
                 <td class="px-5 py-3">
                   <img [id]="'manage-movies-row-poster-' + movie.id" [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
                 </td>

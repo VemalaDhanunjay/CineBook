@@ -199,6 +199,11 @@ export class ManageShowsComponent implements OnInit {
     return new Date(show.showTime).getTime() > Date.now();
   }
 
+  /** True while at least one seat is booked or held for payment. */
+  hasActiveBookings(show: Show): boolean {
+    return show.availableSeats < show.totalSeats;
+  }
+
   /** Split a CSV string into trimmed, non-empty chips. */
   toChips(csv: string | null | undefined): string[] {
     return (csv ?? "")
